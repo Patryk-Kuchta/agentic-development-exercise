@@ -15,6 +15,7 @@ export default tseslint.config(
   tseslint.configs.stylisticTypeChecked,
 
   {
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -25,10 +26,7 @@ export default tseslint.config(
       /* The bans the compiler cannot express. See AGENTS.md. */
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/consistent-type-assertions': [
-        'error',
-        { assertionStyle: 'never' },
-      ],
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/strict-boolean-expressions': [
@@ -44,10 +42,7 @@ export default tseslint.config(
         },
       ],
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { fixStyle: 'inline-type-imports' },
-      ],
+      '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
 
       /* Named exports only, so renames stay greppable. No plugin needed. */
       'no-restricted-syntax': [
@@ -73,7 +68,7 @@ export default tseslint.config(
     languageOptions: {
       globals: globals.browser,
     },
-    extends: [reactHooks.configs['recommended-latest'], reactRefresh.configs.vite],
+    extends: [reactHooks.configs.flat['recommended-latest'], reactRefresh.configs.vite],
   },
 
   /* Config files and tests are allowed the two things the app is not. */
@@ -87,6 +82,24 @@ export default tseslint.config(
     files: ['**/test/**/*.ts', '**/*.test.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
+    },
+  },
+
+  /* Plain JS config files are in no tsconfig, so type-aware rules cannot run on them. */
+  {
+    files: ['**/*.{js,cjs,mjs}'],
+    extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      'no-restricted-syntax': 'off',
+    },
+  },
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
     },
   },
 
