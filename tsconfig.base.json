@@ -19,7 +19,11 @@
     "forceConsistentCasingInFileNames": true,
 
     /* --- our additions --- */
-    "skipLibCheck": false,
+    /* Was false. Flipped: drizzle-orm 1.0-rc ships .d.ts files that do not
+       type-check under strict settings (cockroach-core, column-builder
+       variance). None of it is our code, and none of it is reachable from
+       our imports. Revisit if drizzle 1.0 final cleans them up. */
+    "skipLibCheck": true,
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
     "noUncheckedSideEffectImports": true,

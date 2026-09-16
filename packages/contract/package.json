@@ -8,5 +8,9 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^1.0.0-rc.4",
+    "zod": "^4.6.5"
   }
 }

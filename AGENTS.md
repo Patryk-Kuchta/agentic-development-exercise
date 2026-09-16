@@ -76,7 +76,12 @@ npm run dev      # api + web, watch mode
 | `npm test`            | `vitest run`                                        |
 | `npm run db:generate` | drizzle-kit generate — new migration from schema.ts |
 | `npm run db:check`    | drizzle-kit check — migrations match schema         |
+| `npm run db:studio`   | drizzle-kit studio — browse the local SQLite file   |
 | `npm run build`       | Web production build                                |
+
+`npm run lint:fix` and `npm run format` fix in place. A husky `pre-commit` hook runs
+lint-staged (eslint `--fix` + prettier) on staged files; it is not a substitute for
+`npm run check`.
 
 ## Code style
 
@@ -113,7 +118,8 @@ Errors: fail loudly at the boundary. Parse at the edge with Zod; never guess a d
 ## PR and commit conventions
 
 - Commits: single line, imperative, max 72 chars, no body, no trailers. See `.claude/skills/git-commit-format/SKILL.md`.
-- `npm run check` must be green before you commit. Never commit with it red.
+- `npm run check` must be green before you commit. Never commit with it red — the
+  husky pre-commit hook only lints staged files.
 - Generated migration SQL is committed alongside the schema change that produced it, in the same commit.
 - Never edit an already-applied migration. Add a new one.
 - Branch per change; CI runs `npm run check` on every push and PR.
