@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_comment": "Contents of @tsconfig/strictest, copied rather than installed, with stale keys removed and four flags added. See AGENTS.md.",
+  "compilerOptions": {
+    /* --- from @tsconfig/strictest --- */
+    "strict": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* --- our additions --- */
+    "skipLibCheck": false,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "noUncheckedSideEffectImports": true,
+
+    /* --- module system: one setting for every package, so packages/contract
+           can be imported as source by both the tsx-run API and the Vite web app --- */
+    "target": "ES2023",
+    "module": "preserve",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "noEmit": true
+  }
+}
