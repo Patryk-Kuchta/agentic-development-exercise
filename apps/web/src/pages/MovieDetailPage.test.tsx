@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiOutputs } from '../api/client';
+import { AuthProvider } from '../auth/AuthProvider';
 import { MovieDetailPage } from './MovieDetailPage';
 
 /* The oRPC link binds `globalThis.fetch` when it is constructed, which happens
@@ -23,6 +24,7 @@ function movie(overrides: Partial<Movie> = {}): Movie {
   return {
     id: 42,
     imdbId: 47478,
+    isFavourite: false,
     title: 'Seven Samurai',
     type: 'movie',
     plot: 'A poor village hires seven samurai.',
@@ -75,11 +77,15 @@ function renderDetailPage(path: string) {
   return render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider env="test">
-        <MemoryRouter initialEntries={[path]}>
-          <Routes>
-            <Route path="/movies/:id" element={<MovieDetailPage />} />
-          </Routes>
-        </MemoryRouter>
+        {/* The heart asks who is signed in. jsdom has no stored token, so the
+            session query stays disabled and these render signed-out. */}
+        <AuthProvider>
+          <MemoryRouter initialEntries={[path]}>
+            <Routes>
+              <Route path="/movies/:id" element={<MovieDetailPage />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
       </MantineProvider>
     </QueryClientProvider>,
   );
