@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "sqlite": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["tools/mcp/sqlite-server.mjs"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp", "--browser", "chromium", "--output-dir", ".playwright-mcp"]
+    }
+  }
+}

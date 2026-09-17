@@ -1,0 +1,16 @@
+{
+  "context_servers": {
+    "sqlite": {
+      "source": "custom",
+      "command": "node",
+      "args": ["tools/mcp/sqlite-server.mjs"],
+      "env": {}
+    },
+    "playwright": {
+      "source": "custom",
+      "command": "npx",
+      "args": ["@playwright/mcp", "--browser", "chromium", "--output-dir", ".playwright-mcp"],
+      "env": {}
+    }
+  }
+}

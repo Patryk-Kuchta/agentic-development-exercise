@@ -20,6 +20,8 @@
     "format:check": "prettier --check .",
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build -w apps/web",
+    "mcp:sqlite": "node tools/mcp/sqlite-server.mjs",
+    "mcp:playwright": "npx @playwright/mcp --browser chromium --output-dir .playwright-mcp",
     "db:generate": "drizzle-kit generate --config=apps/api/drizzle.config.ts",
     "db:check": "drizzle-kit check --config=apps/api/drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=apps/api/drizzle.config.ts",
@@ -28,6 +30,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@playwright/mcp": "^0.0.81",
     "@types/node": "^22.20.3",
     "concurrently": "^10.0.5",
     "eslint": "^10.10.0",
