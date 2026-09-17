@@ -1,6 +1,7 @@
 import {
   Alert,
   Badge,
+  Button,
   Card,
   Code,
   Container,
@@ -12,6 +13,7 @@ import {
   Title,
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router';
 
 import { orpc, type ApiOutputs } from '../api/client';
 
@@ -104,6 +106,11 @@ export function HomePage() {
             Browse a catalogue of films and get suggestions from their plots — built end to end in
             TypeScript, from one Drizzle table to the React page you are looking at.
           </Text>
+          <Group mt="sm">
+            <Button component={Link} to="/movies" size="md">
+              Browse the movies
+            </Button>
+          </Group>
         </Stack>
 
         {statsQuery.isPending ? <StatsSkeleton /> : null}

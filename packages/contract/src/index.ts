@@ -1,12 +1,14 @@
 export { favourites, movies, users } from './schema';
-export { contract } from './contract';
+export { contract, movieSortSchema } from './contract';
 export {
   movieSchema,
+  movieSummarySchema,
   sessionSchema,
   signInSchema,
   signUpSchema,
   userSchema,
   type Movie,
+  type MovieSummary,
   type MovieDraft,
   type Session,
   type User,

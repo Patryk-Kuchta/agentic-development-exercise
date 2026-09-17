@@ -9,7 +9,7 @@ import {
   isEmailTaken,
 } from './accounts';
 import type { Db } from './db';
-import { countMovies, countMoviesWithEmbedding } from './movies';
+import { countMovies, countMoviesWithEmbedding, findMovie, listGenres, listMovies } from './movies';
 
 /**
  * What every handler gets besides its input: the bearer token the caller
@@ -106,6 +106,38 @@ export function createRouter(db: Db) {
         deleteSession(context.token);
 
         return { signedOut: true as const };
+      }),
+    },
+
+    movies: {
+      list: os.movies.list.handler(({ input }) => {
+        /* `input` is already parsed, bounded and defaulted by the contract's
+           Zod schema, so there is nothing left to validate here. */
+        const { items, total } = listMovies(db, input);
+
+        return {
+          items,
+          page: input.page,
+          pageSize: input.pageSize,
+          total,
+          /* Derived, not stored: the pager needs a count of pages, and the
+             only two facts that determine it are already in this response. */
+          totalPages: Math.ceil(total / input.pageSize),
+        };
+      }),
+
+      genres: os.movies.genres.handler(() => listGenres(db)),
+
+      get: os.movies.get.handler(({ input, errors }) => {
+        const movie = findMovie(db, input.id);
+
+        if (movie === undefined) {
+          /* `errors` is built from the contract's `.errors({ NOT_FOUND: {} })`,
+             so an undeclared status cannot be thrown from here by mistake. */
+          throw errors.NOT_FOUND();
+        }
+
+        return movie;
       }),
     },
   });
