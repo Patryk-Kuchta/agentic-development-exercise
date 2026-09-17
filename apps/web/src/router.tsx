@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router';
 
+import { FavouritesPage } from './pages/FavouritesPage';
 import { HomePage } from './pages/HomePage';
 import { Layout } from './pages/Layout';
 import { MovieDetailPage } from './pages/MovieDetailPage';
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: '/', Component: HomePage },
       { path: '/movies', Component: MoviesPage },
       { path: '/movies/:id', Component: MovieDetailPage },
+      { path: '/favourites', Component: FavouritesPage },
       { path: '/sign-in', Component: SignInPage },
       { path: '/sign-up', Component: SignUpPage },
       { path: '*', Component: NotFoundPage },

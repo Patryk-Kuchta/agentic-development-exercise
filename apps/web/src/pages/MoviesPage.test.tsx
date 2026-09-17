@@ -6,6 +6,7 @@ import { MemoryRouter, useLocation } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiOutputs } from '../api/client';
+import { AuthProvider } from '../auth/AuthProvider';
 import { MoviesPage } from './MoviesPage';
 
 /* The oRPC link binds `globalThis.fetch` when it is constructed, which happens
@@ -31,6 +32,7 @@ function summary(overrides: Partial<MovieSummary> & Pick<MovieSummary, 'id' | 't
     runtime: 102,
     rated: 'PG',
     plot: 'Something happens to someone.',
+    isFavourite: false,
     ...overrides,
   } satisfies MovieSummary;
 }
@@ -79,17 +81,21 @@ function LocationProbe() {
   return <output data-testid="location-search">{location.search}</output>;
 }
 
-function renderMoviesPage(initialPath = '/movies') {
+function renderMoviesPage(initialPath = '/movies', favouritesOnly = false) {
   /* retry: false keeps the error paths from waiting out React Query's backoff. */
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
   return render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider env="test">
-        <MemoryRouter initialEntries={[initialPath]}>
-          <MoviesPage />
-          <LocationProbe />
-        </MemoryRouter>
+        {/* The heart asks who is signed in. jsdom has no stored token, so the
+            session query stays disabled and these render signed-out. */}
+        <AuthProvider>
+          <MemoryRouter initialEntries={[initialPath]}>
+            <MoviesPage favouritesOnly={favouritesOnly} />
+            <LocationProbe />
+          </MemoryRouter>
+        </AuthProvider>
       </MantineProvider>
     </QueryClientProvider>,
   );
@@ -195,6 +201,14 @@ describe('MoviesPage', () => {
     renderMoviesPage('/movies?q=nothingmatchesthis');
 
     expect(await screen.findByText('No films match those filters')).toBeDefined();
+  });
+
+  it('asks a signed-out visitor to sign in instead of listing the whole catalogue', async () => {
+    respondWith(pageOf([summary({ id: 1, title: 'Seven Samurai' })], { total: 1455 }));
+    renderMoviesPage('/favourites', true);
+
+    expect(await screen.findByText('Sign in to see your favourites')).toBeDefined();
+    expect(screen.queryByText('Seven Samurai')).toBeNull();
   });
 
   it('shows an error alert when the API cannot be reached', async () => {
