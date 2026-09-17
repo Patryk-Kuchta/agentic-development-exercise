@@ -16,3 +16,6 @@ coverage/
 
 .claude/permission-requests.log
 .claude/sessions/
+
+# Playwright MCP writes snapshots, screenshots and console logs here
+.playwright-mcp/
