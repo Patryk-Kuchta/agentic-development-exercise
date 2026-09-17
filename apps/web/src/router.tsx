@@ -2,6 +2,8 @@ import { createBrowserRouter } from 'react-router';
 
 import { HomePage } from './pages/HomePage';
 import { Layout } from './pages/Layout';
+import { MovieDetailPage } from './pages/MovieDetailPage';
+import { MoviesPage } from './pages/MoviesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SignInPage } from './pages/SignInPage';
 import { SignUpPage } from './pages/SignUpPage';
@@ -10,13 +12,18 @@ import { SignUpPage } from './pages/SignUpPage';
    not `element` (a rendered node). `*` is the catch-all.
 
    Everything is nested under `Layout`, which draws the header and renders an
-   `<Outlet />` — so a new page gets the header, and the way to sign out, for
-   free. Exercise 1 adds `/movies` and `/movies/:id` here. */
+   `<Outlet />`, so a new page gets the header and the way to sign out for free.
+
+   The list's search, genre, sort and page live in the query string rather than
+   in the path, so there is one route for the list however it is filtered — and
+   `/movies?genre=Comedy&sort=rating&page=7` is a link someone else can open. */
 export const router = createBrowserRouter([
   {
     Component: Layout,
     children: [
       { path: '/', Component: HomePage },
+      { path: '/movies', Component: MoviesPage },
+      { path: '/movies/:id', Component: MovieDetailPage },
       { path: '/sign-in', Component: SignInPage },
       { path: '/sign-up', Component: SignUpPage },
       { path: '*', Component: NotFoundPage },
