@@ -39,9 +39,8 @@ drizzle migration throws at boot. If migrations explode, you skipped `nvm use`.
 | `apps/api`          | Express 5 + oRPC, Drizzle over `node:sqlite`, vitest                   |
 | `apps/web`          | Vite + React 19 + Mantine 9 + TanStack Query 5 + react-router          |
 
-New to TypeScript or React? Read `learn-this-stack` — it translates the stack from
-whatever you already write. Coming from C#/.NET or Blazor, `js-for-csharp-devs` and
-`frontend-for-csharp-devs` are the long versions.
+New to TypeScript or React? Use `learn-this-stack`: say which language you normally
+write, point at a file or ask a question, and get this repo explained in those terms.
 
 ## The exercises
 

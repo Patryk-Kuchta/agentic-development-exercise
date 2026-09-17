@@ -26,8 +26,8 @@ Gotcha skills the agent doesn't need loaded by default
 Learning skills, for people new to the stack rather than to programming
 
 - `start-here` — what this repo is and what to build first
-- `js-for-csharp-devs` — C#/.NET to TypeScript, npm and ESM
-- `frontend-for-csharp-devs` — Blazor/Razor to React, Mantine and React Query
+- `learn-this-stack` — answer their questions about this repo in the language they write
+- `learn-the-frontend` — React, Mantine and React Query for anyone who has built a UI before
 - `self-review` — review your own diff, and review what an agent wrote for you
 
 Every skill is `<name>/SKILL.md` with `name` and `description` frontmatter. The
