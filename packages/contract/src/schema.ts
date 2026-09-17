@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { blob, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { blob, integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 /**
  * The single source of truth for this application.
@@ -63,3 +63,57 @@ export const movies = sqliteTable('movies', {
     .notNull()
     .default(sql`(current_timestamp)`),
 });
+
+/**
+ * Someone who can sign in and keep favourites. Exercise 2 fills these two
+ * tables; they are declared here, with the migration already generated, so that
+ * the exercise is about accounts rather than about drizzle-kit.
+ *
+ * THIS IS A TEACHING APP. There is no email verification, no password reset and
+ * no session expiry. Do not copy this into anything real.
+ */
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+
+  /* Unique in the database, not just in the handler: two sign-ups racing on the
+     same address would both pass a "does this email exist?" check. */
+  email: text('email').notNull().unique(),
+
+  displayName: text('display_name').notNull(),
+
+  /* Never the password itself. Hash it with node:crypto's scrypt — `bcrypt` is
+     a native addon and rule 2 bans it. */
+  passwordHash: text('password_hash').notNull(),
+
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+/**
+ * One person favouriting one film. The pair is the primary key, so favouriting
+ * the same film twice is impossible in the database rather than merely unlikely
+ * in the handler — which is what makes a double-clicked heart harmless.
+ *
+ * Sessions are deliberately *not* here. Who is currently signed in is a fact
+ * about a running process, not about the catalogue, so exercise 2 keeps it in
+ * memory and everyone is signed out when the API restarts.
+ */
+export const favourites = sqliteTable(
+  'favourites',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+
+    movieId: integer('movie_id')
+      .notNull()
+      /* Cascades so that deleting either side never leaves an orphan row. */
+      .references(() => movies.id, { onDelete: 'cascade' }),
+
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(current_timestamp)`),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.movieId] })],
+);
