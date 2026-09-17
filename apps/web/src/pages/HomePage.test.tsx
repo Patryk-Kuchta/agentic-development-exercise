@@ -36,6 +36,15 @@ describe('HomePage', () => {
     expect(screen.getByRole('heading', { name: 'Movie Suggester' })).toBeDefined();
   });
 
+  it('links to the movie list', () => {
+    respondWithStats({ movieCount: 42, moviesWithEmbedding: 40, isIngested: true });
+    renderHomePage();
+
+    expect(screen.getByRole('link', { name: 'Browse the movies' }).getAttribute('href')).toBe(
+      '/movies',
+    );
+  });
+
   it('renders the ingested movie count once the stats load', async () => {
     respondWithStats({ movieCount: 42, moviesWithEmbedding: 40, isIngested: true });
     renderHomePage();
