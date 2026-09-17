@@ -8,7 +8,7 @@ export function NotFoundPage() {
         <Title order={1}>404</Title>
         <Text c="dimmed">There is nothing at this address.</Text>
         <Anchor component={Link} to="/">
-          Back to tasks
+          Back to the home page
         </Anchor>
       </Stack>
     </Container>
