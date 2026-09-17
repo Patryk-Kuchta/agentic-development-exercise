@@ -1,6 +1,7 @@
 export { favourites, movies, users } from './schema';
 export { contract, movieSortSchema } from './contract';
 export {
+  favouriteSchema,
   movieSchema,
   movieSummarySchema,
   sessionSchema,
