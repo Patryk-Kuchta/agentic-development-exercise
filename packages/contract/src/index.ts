@@ -4,6 +4,8 @@ export {
   favouriteSchema,
   movieSchema,
   movieSummarySchema,
+  scoredMovieSchema,
+  suggestionSchema,
   sessionSchema,
   signInSchema,
   signUpSchema,

@@ -9,15 +9,23 @@ import {
   isEmailTaken,
 } from './accounts';
 import type { Db } from './db';
-import { addFavourite, removeFavourite } from './favourites';
+import { addFavourite, listFavouriteIds, removeFavourite } from './favourites';
 import {
   countMovies,
   countMoviesWithEmbedding,
   findMovie,
+  findSummariesByIds,
   listGenres,
   listMovies,
   movieExists,
 } from './movies';
+import {
+  buildTasteVector,
+  cosineSimilarity,
+  findMostSimilar,
+  loadEmbeddings,
+  type ScoredMovie,
+} from './suggestions';
 
 /**
  * What every handler gets besides its input: the bearer token the caller
@@ -58,6 +66,24 @@ export function createRouter(db: Db) {
   /** Who is asking. No token, a stale one and junk are all the same answer. */
   const viewerOf = (context: RequestContext): User | undefined =>
     findUserByToken(db, context.token);
+
+  /**
+   * Turns scored ids into scored movies, keeping the ranking. One query for the
+   * whole result rather than one per suggestion.
+   */
+  const withSummaries = (scored: ScoredMovie[], viewer: number | undefined) => {
+    const summaries = findSummariesByIds(
+      db,
+      scored.map((row) => row.id),
+      viewer,
+    );
+    const byId = new Map(summaries.map((movie) => [movie.id, movie]));
+
+    return scored.flatMap((row) => {
+      const movie = byId.get(row.id);
+      return movie === undefined ? [] : [{ movie, score: row.score }];
+    });
+  };
 
   return os.router({
     health: os.health.handler(() => ({
@@ -147,7 +173,90 @@ export function createRouter(db: Db) {
 
         return movie;
       }),
+
+      similar: os.movies.similar.handler(({ input, context, errors }) => {
+        if (!movieExists(db, input.id)) {
+          throw errors.NOT_FOUND();
+        }
+
+        const embeddings = loadEmbeddings(db);
+        const query = embeddings.find((row) => row.id === input.id);
+
+        /* 27 of the 1455 films ship without a vector, and `loadEmbeddings`
+           leaves those rows out — so "missing from the candidates" is exactly
+           "has no vector", and one load answers both questions. There is
+           nothing to measure against, so the honest answer is "none" rather
+           than a crash or a list of arbitrary films. */
+        if (query === undefined) {
+          return [];
+        }
+
+        /* Excluding the film itself is what stops every "more like this" being
+           headed by the film you are already looking at, scoring a perfect 1. */
+        const scored = findMostSimilar(
+          query.embedding,
+          embeddings,
+          new Set([input.id]),
+          input.limit,
+        );
+
+        return withSummaries(scored, viewerOf(context)?.id);
+      }),
     },
+
+    suggestions: os.suggestions.handler(({ input, context, errors }) => {
+      const viewer = viewerOf(context);
+
+      if (viewer === undefined) {
+        throw errors.UNAUTHORIZED();
+      }
+
+      /* A set, because every use of it below is a membership test — including
+         `findMostSimilar`'s exclusion list, which takes one. An `includes`
+         inside a filter over 1455 rows is a scan per row. */
+      const favouriteIds = new Set(listFavouriteIds(db, viewer.id));
+      const embeddings = loadEmbeddings(db);
+
+      /* Only the favourites that actually carry a vector can vote, and the same
+         list is what each suggestion is attributed to below. */
+      const favouriteEmbeddings = embeddings.filter((row) => favouriteIds.has(row.id));
+      const taste = buildTasteVector(favouriteEmbeddings.map((row) => row.embedding));
+
+      /* No favourites, or none of them with a vector: an empty list, which the
+         browser renders as "favourite something first". */
+      if (taste === undefined) {
+        return [];
+      }
+
+      /* Suggesting a film they have already favourited is not a suggestion. */
+      const scored = findMostSimilar(taste, embeddings, favouriteIds, input.limit);
+      const suggestions = withSummaries(scored, viewer.id);
+
+      const embeddingsById = new Map(embeddings.map((row) => [row.id, row.embedding]));
+      const sourceIds = favouriteEmbeddings.map((row) => row.id);
+      const sourcesById = new Map(
+        findSummariesByIds(db, sourceIds, viewer.id).map((movie) => [movie.id, movie]),
+      );
+
+      return suggestions.flatMap((suggestion) => {
+        const vector = embeddingsById.get(suggestion.movie.id);
+
+        if (vector === undefined) {
+          return [];
+        }
+
+        /* "Which favourite caused this" is the one it sits closest to. No seed
+           on the reduce: a defined `taste` proves the list is not empty. */
+        const nearest = favouriteEmbeddings.reduce((best, row) =>
+          cosineSimilarity(vector, row.embedding) > cosineSimilarity(vector, best.embedding)
+            ? row
+            : best,
+        );
+        const because = sourcesById.get(nearest.id);
+
+        return because === undefined ? [] : [{ ...suggestion, because }];
+      });
+    }),
 
     favourites: {
       add: os.favourites.add.handler(({ input, context, errors }) => {
