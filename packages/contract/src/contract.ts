@@ -3,6 +3,8 @@ import { z } from 'zod';
 import {
   favouriteSchema,
   movieSchema,
+  scoredMovieSchema,
+  suggestionSchema,
   movieSummarySchema,
   sessionSchema,
   signInSchema,
@@ -21,6 +23,14 @@ import {
 
 /** Path parameters arrive as strings, so the id is coerced before it is checked. */
 const movieParams = z.object({ id: z.coerce.number().int().positive() });
+
+/**
+ * How many neighbours to return. Bounded for the same reason `pageSize` is:
+ * the scan is cheap, but nobody needs 1455 suggestions.
+ */
+const suggestionQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(24).default(6),
+});
 
 /** The same id, named for the path it appears in: `/favourites/{movieId}`. */
 const favouriteParams = z.object({ movieId: z.coerce.number().int().positive() });
@@ -134,7 +144,26 @@ export const contract = {
       .input(movieParams)
       .output(movieSchema)
       .errors({ NOT_FOUND: {} }),
+
+    /* "More like this". A film with no vector resembles nothing we can measure,
+       so this answers with an empty list rather than an error — see the brief. */
+    similar: oc
+      .route({ method: 'GET', path: '/movies/{id}/similar' })
+      .input(movieParams.extend(suggestionQuerySchema.shape))
+      .output(z.array(scoredMovieSchema))
+      .errors({ NOT_FOUND: {} }),
   },
+
+  /**
+   * Suggestions from everything the caller has favourited, as one taste vector.
+   * An empty array means "favourite something first" — the browser says that,
+   * because an empty grid is not an explanation.
+   */
+  suggestions: oc
+    .route({ method: 'GET', path: '/suggestions' })
+    .input(suggestionQuerySchema)
+    .output(z.array(suggestionSchema))
+    .errors({ UNAUTHORIZED: {} }),
 
   favourites: {
     add: oc
