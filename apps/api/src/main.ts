@@ -2,7 +2,12 @@ import { createApp } from './app';
 import { applyMigrations, createDb } from './db';
 import { env } from './env';
 import { ingestOnBoot } from './ingest/on-boot';
+import { requireSupportedNodeVersion } from './node-version';
 import { migrationsDir } from './paths';
+
+/* Before anything touches SQLite: on Node 23 the migrator fails with an error
+   that names none of this. */
+requireSupportedNodeVersion();
 
 const db = createDb(env.DATABASE_URL);
 applyMigrations(db, migrationsDir);

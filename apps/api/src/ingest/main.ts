@@ -2,8 +2,11 @@ import { z } from 'zod';
 import { applyMigrations, createDb } from '../db';
 import { env } from '../env';
 import { countMovies, countMoviesWithEmbedding } from '../movies';
+import { requireSupportedNodeVersion } from '../node-version';
 import { migrationsDir } from '../paths';
 import { ingestMovies } from './ingest';
+
+requireSupportedNodeVersion();
 
 /**
  * `npm run ingest` — fill the database from the Hugging Face dataset.
