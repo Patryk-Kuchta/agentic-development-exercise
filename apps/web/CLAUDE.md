@@ -26,7 +26,9 @@ const { data, isPending, isError } = useQuery(orpc.stats.queryOptions());
 
 ## New to React?
 
-Three things bite hardest, whatever UI you have built before:
+`.claude/skills/learn-the-frontend/SKILL.md` translates React, Mantine and React Query from
+whatever UI you have built before; `learn-this-stack` does the language side. The three that
+bite hardest whatever your background:
 
 - A component is a **function that re-runs**, not an object that persists. There are no
   fields; `useState` is where a value survives a re-render.
@@ -37,7 +39,7 @@ Three things bite hardest, whatever UI you have built before:
 
 ## Before you write a helper
 
-Look in the libraries first. Mantine already has the table, the modal,
+Check `.claude/skills/use-the-library/SKILL.md`. Mantine already has the table, the modal,
 the pagination, the notification and the form state; React Query already has loading, error,
 invalidation and optimistic updates. A hand-rolled version of any of them will be sent back.
 

@@ -11,15 +11,16 @@ The source of truth. Everything else in the repo is downstream of this folder.
 | `contract.ts` | the HTTP procedures           | `zod.ts`, via oRPC                                  |
 | `index.ts`    | what the other workspaces see | the three above                                     |
 
-Read them in that order and the design explains itself. Write them in that order too — "Rule
-1 — derive, never duplicate" in [AGENTS.md](../../AGENTS.md) is the procedure.
+Read them in that order and the design explains itself. Write them in that order too —
+`.claude/skills/add-feature/SKILL.md` is the procedure.
 
 ## If this pipeline is new to you
 
 Whatever you normally write, something in it plays the part of `schema.ts` — an ORM entity,
 a model class, a struct with tags. The difference is that this one also generates the
 migration, the validation, the DTOs **and** the client. There is no separate DTO layer
-because there is nothing for a DTO to add.
+because there is nothing for a DTO to add. `.claude/skills/learn-this-stack/SKILL.md`
+translates the rest into the language you already know.
 
 `contract.ts` is closest to a shared interface in a class library referenced by both the
 server and the client — the difference is that the Zod schemas in it are real objects at
