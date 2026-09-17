@@ -9,6 +9,11 @@ import type { Db } from '../../src/db';
 export interface TestServer {
   /** The same typed client the browser uses, pointed at a real local port. */
   client: ContractRouterClient<typeof contract>;
+  /**
+   * The same client, presenting a session token on every request — the browser's
+   * signed-in state, expressed the way the browser expresses it.
+   */
+  clientFor: (token: string) => ContractRouterClient<typeof contract>;
   close: () => Promise<void>;
 }
 
@@ -27,13 +32,14 @@ export async function startTestServer(db: Db): Promise<TestServer> {
     throw new Error(`Expected the test server on a TCP port, got ${JSON.stringify(address)}`);
   }
 
-  const link = new OpenAPILink(contract, {
-    url: `http://127.0.0.1:${String(address.port)}/api`,
-  });
-  const client: ContractRouterClient<typeof contract> = createORPCClient(link);
+  const url = `http://127.0.0.1:${String(address.port)}/api`;
+
+  const connect = (headers: Record<string, string>): ContractRouterClient<typeof contract> =>
+    createORPCClient(new OpenAPILink(contract, { url, headers: () => headers }));
 
   return {
-    client,
+    client: connect({}),
+    clientFor: (token) => connect({ authorization: `Bearer ${token}` }),
     close: async () => {
       server.close();
       await once(server, 'close');
