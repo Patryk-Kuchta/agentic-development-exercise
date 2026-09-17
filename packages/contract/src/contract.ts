@@ -1,6 +1,7 @@
 import { oc } from '@orpc/contract';
 import { z } from 'zod';
 import {
+  favouriteSchema,
   movieSchema,
   movieSummarySchema,
   sessionSchema,
@@ -21,6 +22,21 @@ import {
 /** Path parameters arrive as strings, so the id is coerced before it is checked. */
 const movieParams = z.object({ id: z.coerce.number().int().positive() });
 
+/** The same id, named for the path it appears in: `/favourites/{movieId}`. */
+const favouriteParams = z.object({ movieId: z.coerce.number().int().positive() });
+
+/**
+ * A yes/no that arrives down a query string, where there are no booleans.
+ *
+ * `z.coerce.boolean()` is the trap: it follows JavaScript truthiness, and the
+ * string `"false"` is truthy, so every value would mean yes. Naming the two
+ * words and transforming is the version that works.
+ */
+const queryFlag = z
+  .enum(['true', 'false'])
+  .default('false')
+  .transform((value) => value === 'true');
+
 /**
  * A closed set of sort orders. An open string would let a caller name a column
  * and turn the query builder into an injection surface.
@@ -38,6 +54,10 @@ const movieListQuerySchema = z.object({
   search: z.string().trim().min(1).max(100).optional(),
   genre: z.string().trim().min(1).max(50).optional(),
   sort: movieSortSchema.default('rating'),
+  /* Narrows the list to the caller's own favourites, and composes with the
+     search, genre and sort filters rather than replacing them. An anonymous
+     caller has no favourites, so they get an empty page, not an error. */
+  favouritesOnly: queryFlag,
 });
 
 /** One page of results, plus what a pager needs to draw itself. */
@@ -114,5 +134,24 @@ export const contract = {
       .input(movieParams)
       .output(movieSchema)
       .errors({ NOT_FOUND: {} }),
+  },
+
+  favourites: {
+    add: oc
+      .route({ method: 'POST', path: '/favourites/{movieId}' })
+      .input(favouriteParams)
+      .output(favouriteSchema)
+      /* NOT_FOUND is the film; UNAUTHORIZED is the caller. Two failures, two
+         declarations, so the browser can tell "sign in first" from "no such
+         film" without parsing an error message. */
+      .errors({ NOT_FOUND: {}, UNAUTHORIZED: {} }),
+
+    remove: oc
+      .route({ method: 'DELETE', path: '/favourites/{movieId}' })
+      .input(favouriteParams)
+      .output(favouriteSchema)
+      /* No NOT_FOUND: removing a favourite that is not there leaves the caller
+         in exactly the state they asked for, so it is a success. */
+      .errors({ UNAUTHORIZED: {} }),
   },
 };

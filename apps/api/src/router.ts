@@ -9,7 +9,15 @@ import {
   isEmailTaken,
 } from './accounts';
 import type { Db } from './db';
-import { countMovies, countMoviesWithEmbedding, findMovie, listGenres, listMovies } from './movies';
+import { addFavourite, removeFavourite } from './favourites';
+import {
+  countMovies,
+  countMoviesWithEmbedding,
+  findMovie,
+  listGenres,
+  listMovies,
+  movieExists,
+} from './movies';
 
 /**
  * What every handler gets besides its input: the bearer token the caller
@@ -110,10 +118,10 @@ export function createRouter(db: Db) {
     },
 
     movies: {
-      list: os.movies.list.handler(({ input }) => {
+      list: os.movies.list.handler(({ input, context }) => {
         /* `input` is already parsed, bounded and defaulted by the contract's
            Zod schema, so there is nothing left to validate here. */
-        const { items, total } = listMovies(db, input);
+        const { items, total } = listMovies(db, input, viewerOf(context)?.id);
 
         return {
           items,
@@ -128,8 +136,8 @@ export function createRouter(db: Db) {
 
       genres: os.movies.genres.handler(() => listGenres(db)),
 
-      get: os.movies.get.handler(({ input, errors }) => {
-        const movie = findMovie(db, input.id);
+      get: os.movies.get.handler(({ input, context, errors }) => {
+        const movie = findMovie(db, input.id, viewerOf(context)?.id);
 
         if (movie === undefined) {
           /* `errors` is built from the contract's `.errors({ NOT_FOUND: {} })`,
@@ -138,6 +146,38 @@ export function createRouter(db: Db) {
         }
 
         return movie;
+      }),
+    },
+
+    favourites: {
+      add: os.favourites.add.handler(({ input, context, errors }) => {
+        const viewer = viewerOf(context);
+
+        if (viewer === undefined) {
+          throw errors.UNAUTHORIZED();
+        }
+
+        /* Checked before the insert so the caller gets a 404 rather than a
+           foreign key violation, which would be a 500 and explain nothing. */
+        if (!movieExists(db, input.movieId)) {
+          throw errors.NOT_FOUND();
+        }
+
+        addFavourite(db, viewer.id, input.movieId);
+
+        return { movieId: input.movieId, isFavourite: true };
+      }),
+
+      remove: os.favourites.remove.handler(({ input, context, errors }) => {
+        const viewer = viewerOf(context);
+
+        if (viewer === undefined) {
+          throw errors.UNAUTHORIZED();
+        }
+
+        removeFavourite(db, viewer.id, input.movieId);
+
+        return { movieId: input.movieId, isFavourite: false };
       }),
     },
   });
