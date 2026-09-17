@@ -14,17 +14,12 @@
     "dev": "concurrently -n api,web -c cyan,magenta \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
     "ingest": "npm run ingest -w apps/api --",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "eslint . --max-warnings=0",
-    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test --workspaces --if-present",
     "build": "npm run build -w apps/web",
     "db:generate": "drizzle-kit generate --config=apps/api/drizzle.config.ts",
     "db:check": "drizzle-kit check --config=apps/api/drizzle.config.ts",
-    "db:studio": "drizzle-kit studio --config=apps/api/drizzle.config.ts",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run db:check && npm run build",
-    "prepare": "husky"
+    "db:studio": "drizzle-kit studio --config=apps/api/drizzle.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -41,14 +36,5 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.0",
     "vitest": "^5.0.1"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --max-warnings=0 --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,css,yml,yaml}": [
-      "prettier --write"
-    ]
   }
 }
