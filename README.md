@@ -4,20 +4,14 @@ Build a film recommender over 1455 films, with an AI coding agent as your pair.
 
 ## Setup
 
-You need **Node 24** (pinned in `.nvmrc`) and the npm that ships with it.
+You need **Node 24** (pinned in `.nvmrc`). Any way of getting it works — nvm is just the
+easiest:
 
-nvm is the easiest way to get it:
-
-- **Linux, macOS, or WSL on Windows** —
-  [nvm](https://github.com/nvm-sh/nvm#installing-and-updating), then `nvm install && nvm use`.
-  It reads `.nvmrc`.
-- **Native Windows** — there is no official nvm for Windows; `nvm-sh/nvm` does not support it.
-  Use [nvm-windows](https://github.com/coreybutler/nvm-windows#installation--upgrades), the
-  separate project nvm's own README points to. It ignores `.nvmrc`, so
-  `nvm install 24 && nvm use 24`.
-
-nvm is optional — skip it if you already manage Node another way. Just make sure `node -v`
-says v24 and `npm -v` is modern. Those two things are all that matters.
+- **Linux, macOS, WSL** — [nvm](https://github.com/nvm-sh/nvm#installing-and-updating), then
+  `nvm install && nvm use`. It reads `.nvmrc`.
+- **Native Windows** — nvm does not support it; use
+  [nvm-windows](https://github.com/coreybutler/nvm-windows#installation--upgrades), which
+  ignores `.nvmrc`: `nvm install 24 && nvm use 24`.
 
 Then:
 
@@ -27,10 +21,9 @@ npm run dev
 ```
 
 Open <http://localhost:5173>. The API downloads the dataset on first start, so the film count
-fills in after a few seconds.
+fills in shortly after.
 
-Node 23 or below fails every migration with `stmt.setReturnArrays is not a function`. That
-error means the wrong Node and nothing else.
+`stmt.setReturnArrays is not a function` means Node 23 or below, and nothing else.
 
 ## What you start with
 
@@ -60,15 +53,12 @@ git checkout <branch>
 | `exercise-3-setup`    | Exercise 3     | The skills, subagents and hooks in `.claude/` |
 | `exercise-3-solution` | —              | A worked answer to exercise 3                 |
 
-Each branch is built on the one above it, so later branches carry everything the earlier ones
-do. They all share one `package-lock.json`, so `npm install` once covers every branch — run it
-again after a checkout anyway, which is harmless and installs the git hook the gate branches
-add.
+Each branch builds on the one above it, and they share one `package-lock.json` — so `npm
+install` after a checkout is harmless, and installs the git hook the gate branches add. A fresh
+clone is already on `main`, so exercise 1 needs no checkout.
 
-A fresh clone is already on `main`, so exercise 1 needs no checkout.
-
-The solution branches are worked answers. Read one after you have built your own, not instead
-of it. Want to keep your own work as you move up the stack? See **Advanced** below.
+Read a solution branch after you have built your own, not instead of it. To carry your own work
+up the stack, see **Advanced** below.
 
 <details>
 <summary>Moving between branches</summary>
@@ -79,7 +69,7 @@ Work on your own branch, so a checkout never threatens your code:
 git switch -c my-exercise-1     # before you start
 ```
 
-Commit or stash before you switch, or git will refuse:
+Commit or stash before switching, or git refuses:
 
 ```sh
 git stash                       # always works
@@ -87,9 +77,9 @@ git checkout exercise-2-setup
 npm install                     # harmless, and installs the git hook
 ```
 
-Committing instead of stashing is fine, but from `exercise-2-setup` on the pre-commit hook
-lints what you staged, so `git commit -am "wip"` can be refused by the very lint errors you
-were trying to park. `git stash`, or `git commit --no-verify`, never is.
+Committing works too, but from `exercise-2-setup` on the pre-commit hook lints what you
+staged — so `git commit -am "wip"` can be refused by the very errors you were parking.
+`git stash` or `--no-verify` never is.
 
 Back to the start, or to see what is on offer:
 
@@ -104,19 +94,9 @@ To push your own work, fork the repo on GitHub first and push to your fork.
 
 ## The exercises
 
-Do them in order — each builds on the last. Three rules apply throughout:
-
-1. **Derive, never duplicate.** A field is declared once, in
-   `packages/contract/src/schema.ts`. Work in that direction: schema → migration → `zod.ts` →
-   `contract.ts` → handler → web. Never hand-write a type, a Zod schema, a migration or a
-   `fetch`.
-2. **Reshape, don't redeclare** — `.pick()`, `.omit()` and `.extend()` on a derived schema.
-3. **npm only.** No Docker, no database server, no API keys, no native builds. Any pure-JS npm
-   package is fine.
-
 ### Exercise 1 — Browse the movies
 
-Start on `main` · answer on `exercise-1-solution` · a couple of hours
+Start on `main` · answer on `exercise-1-solution`
 
 1455 films are in SQLite and nobody can look at one. Build a paginated list and a page per
 film. Ignore `plot_embedding` — that is exercise 3's.
@@ -143,7 +123,7 @@ about it.
 
 ### Exercise 2 — Favourites
 
-Start on `exercise-2-setup` · answer on `exercise-2-solution` · half a day
+Start on `exercise-2-setup` · answer on `exercise-2-solution`
 
 This branch adds the gate. `npm run check` — types, lint, format, tests, `db:check`, build — is
 now the single definition of done, and `AGENTS.md` plus the per-workspace `CLAUDE.md` files are
@@ -175,7 +155,7 @@ theirs, sign back in and find all three — as long as you have not restarted th
 
 ### Exercise 3 — Suggestions from the embeddings
 
-Start on `exercise-3-setup` · answer on `exercise-3-solution` · half a day
+Start on `exercise-3-setup` · answer on `exercise-3-solution`
 
 This branch adds `.claude/` — skills, subagents and hooks. Use them; this is the exercise where
 you drive the agent rather than type.
@@ -194,7 +174,7 @@ plots point in similar directions, and that is **cosine similarity** —
 **No vector database, no API key, no new service.** 1455 vectors is ~9 MB, so scanning all of
 them is milliseconds. Decode each **once**, not once per comparison. Do not assume unit
 length — divide by the magnitudes, or normalise up front and say so in a comment. A
-zero-magnitude vector divides to `NaN`, and `NaN` sorts in a way that will cost you an hour.
+zero-magnitude vector divides to `NaN`, and `NaN` sorts in a way that will catch you out.
 Decode with a `Float32Array` view and narrow with `instanceof Uint8Array`; reaching for `as`
 means you took a wrong turn. **Embeddings never go to the browser.**
 
@@ -220,27 +200,27 @@ git cherry-pick exercise-1-solution..exercise-2-setup^
 npm install
 ```
 
-The `^` drops the last commit, which is tests written against the example solution rather than
-against yours. For exercise 3 nothing needs dropping:
+The `^` drops the last commit — tests written against the example solution, not yours. For
+exercise 3 nothing needs dropping:
 
 ```sh
 git checkout my-exercise-2
 git cherry-pick exercise-2-solution..exercise-3-setup
 ```
 
-`npm run check` is now the definition of done, and it is seeing your exercise 1 for the first
-time — expect lint complaints, and your own routes still have no tests. Clearing that is the
-first half of exercise 2.
+`npm run check` is now the definition of done and is seeing your exercise 1 for the first
+time — expect lint complaints, and no tests on your own routes. Clearing that is the first half
+of exercise 2.
 
-Hand the whole job to Claude: the cherry-pick, the conflicts and the failures. It is exactly
-the kind of work it is good at, and doing it that way is recommended.
+Hand the whole job to Claude — cherry-pick, conflicts and failures. It is exactly the kind of
+work it is good at.
 
 </details>
 
 ## The stretch goals
 
-Finished all three? Thirty-odd small extras, an hour to an afternoon each. No answer branches;
-you are on your own, which is the point. Same three rules.
+Finished all three? Thirty-odd small extras. No answer branches; you are on your own, which
+is the point.
 
 <details>
 <summary>Pick one you would actually use</summary>
@@ -284,7 +264,7 @@ you are on your own, which is the point. Same three rules.
 
 **Under the hood**
 
-- **Add a column the ingest throws away** — the whole schema-to-UI flow in one sitting.
+- **Add a column the ingest throws away** — the whole schema-to-UI flow end to end.
 - **Make ingest legible** — progress, a summary, and no redone work.
 - **A fixture database** so tests can assert _which_ neighbour comes back.
 - **Measure the scan** at 1455 vectors, then at 150,000.
