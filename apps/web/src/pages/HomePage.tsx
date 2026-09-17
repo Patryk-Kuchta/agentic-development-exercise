@@ -136,7 +136,7 @@ export function HomePage() {
               from here, each with an example solution on its own branch.
             </Text>
             <Text size="sm">
-              Open <Code>exercises/EXERCISE-1.md</Code> to start: the movie list and detail pages.
+              Open <Code>README.md</Code> to start: exercise 1 is the movie list and detail pages.
             </Text>
           </Stack>
         </Card>
