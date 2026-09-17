@@ -4,16 +4,20 @@ Full instructions: [`AGENTS.md`](../AGENTS.md). The essentials are inlined below
 
 ## Stack
 
-npm-workspaces monorepo, Node 24 (`.nvmrc`). `packages/contract` (Drizzle schema
+npm-workspaces monorepo, Node 24 (`.nvmrc`). Three workspaces:
+`packages/contract` (Drizzle schema, drizzle-zod, oRPC contract), `apps/api`
+(Express 5, `@orpc/server` with `@orpc/openapi`, Drizzle over `node:sqlite`,
+vitest), `apps/web` (Vite, React 19, Mantine, React Query,
+`@orpc/tanstack-query`, react-router).
 
-- drizzle-zod + ts-rest), `apps/api` (Express 5, `@ts-rest/express`, Drizzle over
-  `node:sqlite`, vitest), `apps/web` (Vite, React 19, Mantine, React Query,
-  `@ts-rest/react-query`, react-router).
+The app is **Movie Suggester**, over the `MongoDB/embedded_movies` Hugging Face
+dataset. It is a teaching repo: `main` holds the foundation, and three exercises
+in `exercises/` build the rest.
 
 ## Rule 1 — derive, never duplicate
 
 ```
-Drizzle table -> Zod schema -> ts-rest contract -> handler types + validation, React Query hooks, SQL migration
+Drizzle table -> Zod schema -> oRPC contract -> handler types + validation, React Query hooks, SQL migration
 ```
 
 A field is declared once, in `packages/contract/src/schema.ts`. Everything else

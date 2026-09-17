@@ -29,7 +29,7 @@ Check `use-the-library` first. If Mantine, `@mantine/form`, React Query, Zod, or
 Drizzle already covers it, use that.
 
 Also stop and ask if it is: a date library (use `@mantine/dates` /
-`Intl.DateTimeFormat`), a validation library (Zod), an HTTP client (ts-rest), a
+`Intl.DateTimeFormat`), a validation library (Zod), an HTTP client (oRPC), a
 state manager (React Query), or a utility grab-bag.
 
 ## Otherwise

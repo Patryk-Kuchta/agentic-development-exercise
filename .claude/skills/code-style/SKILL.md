@@ -8,11 +8,11 @@ Apply these conventions when writing or reviewing code in this project.
 ## Codebase Structure
 
 - `packages/contract/src` — `schema.ts` (Drizzle tables) -> `zod.ts` (drizzle-zod)
-  -> `contract.ts` (ts-rest), re-exported from `index.ts`. Nothing else lives here.
+  -> `contract.ts` (oRPC), re-exported from `index.ts`. Nothing else lives here.
 - `apps/api/src` — routers, Drizzle db setup, Zod-parsed env. Handlers stay thin;
   logic goes in a plain function the handler calls.
 - `apps/web/src` — routes/, components/, hooks/. Components render; data comes
-  from `@ts-rest/react-query` hooks.
+  from `@orpc/tanstack-query` hooks.
 - Not all code will be in this structure, especially early code, but new code
   should always follow it.
 
@@ -75,4 +75,4 @@ Apply these conventions when writing or reviewing code in this project.
 - One assertion concept per test.
 - No shared mutable fixtures between tests.
 - API tests boot the real app on port 0 and call it through the generated
-  ts-rest client. No supertest, no mocking the HTTP layer.
+  oRPC client. No supertest, no mocking the HTTP layer.

@@ -8,7 +8,7 @@ Read `AGENTS.md` first — it has the commands, the strictness list, and links t
 
 Two rules override everything else:
 
-1. **Derive, never duplicate.** Drizzle table -> drizzle-zod schema -> ts-rest
+1. **Derive, never duplicate.** Drizzle table -> drizzle-zod schema -> oRPC
    contract -> Express handler types, React Query hooks, SQL migration. A field
    is declared once, in `packages/contract/src/schema.ts`; work in that order.
    Never hand-write a Zod schema, type, migration, or fetch call that is

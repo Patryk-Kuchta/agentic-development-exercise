@@ -19,7 +19,7 @@ already a prop.
 | Loading / error / empty states         | React Query `isPending`, `isError`, `error`                             | manual loading booleans      |
 | Refetch, cache, invalidate after write | React Query `invalidateQueries`, `staleTime`                            | a refresh counter in state   |
 | Optimistic update                      | React Query `onMutate` / `onError` rollback                             | local mirror of server state |
-| Calling the API                        | `@ts-rest/react-query` hooks from the contract                          | `fetch` / axios              |
+| Calling the API                        | `@orpc/tanstack-query` hooks from the contract                          | `fetch` / axios              |
 | Parsing unknown data, env, params      | Zod `.parse` / `.safeParse`                                             | `as`, manual `typeof` checks |
 | Enum-ish union                         | `z.enum([...])`                                                         | TypeScript `enum` (banned)   |
 | Querying, joins, inserts, transactions | Drizzle query builder / `db.transaction`                                | raw SQL strings              |

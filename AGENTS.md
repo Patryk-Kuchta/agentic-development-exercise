@@ -2,20 +2,40 @@
 
 Instructions for coding agents working in this repo. Humans should read this too.
 
+## What this is
+
+**Movie Suggester** — a small app over the
+[`MongoDB/embedded_movies`](https://huggingface.co/datasets/MongoDB/embedded_movies)
+Hugging Face dataset: 1500 films with plots, cast, ratings, and a 1536-number
+`plot_embedding` per film.
+
+It is also a **teaching repo**. `main` deliberately ships only the foundation — the schema,
+the dataset ingest, a health/stats API and a landing page. Three exercises build the rest,
+each with a worked answer on its own branch:
+
+| Exercise                     | Builds                               | Example solution branch       |
+| ---------------------------- | ------------------------------------ | ----------------------------- |
+| [1](exercises/EXERCISE-1.md) | Paginated movie list + detail page   | `exercise-1-example-solution` |
+| [2](exercises/EXERCISE-2.md) | Accounts and favourites              | `exercise-2-example-solution` |
+| [3](exercises/EXERCISE-3.md) | Suggestions from the plot embeddings | `exercise-3-example-solution` |
+
+If you are an agent asked to "do exercise N", build it on a branch off the previous one;
+do not copy the example solution.
+
 ## Project overview
 
 `agentic-development-exercise` — an npm-workspaces monorepo. Three workspaces:
 
-| Workspace           | What it is                                                                                                                                                                                                       |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/contract` | **Source of truth.** Drizzle `sqliteTable` schema (`src/schema.ts`), drizzle-zod schemas derived from it (`src/zod.ts`), ts-rest contract built from those (`src/contract.ts`), re-exported from `src/index.ts`. |
-| `apps/api`          | Express 5 + `@ts-rest/express` `createExpressEndpoints`. Drizzle ORM over Node's built-in `node:sqlite`. drizzle-kit migrations applied at boot. Env parsed with Zod.                                            |
-| `apps/web`          | Vite + React 19 + Mantine + `@tanstack/react-query` + `@ts-rest/react-query` + react-router.                                                                                                                     |
+| Workspace           | What it is                                                                                                                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/contract` | **Source of truth.** Drizzle `sqliteTable` schema (`src/schema.ts`), drizzle-zod schemas derived from it (`src/zod.ts`), oRPC contract built from those (`src/contract.ts`), re-exported from `src/index.ts`. |
+| `apps/api`          | Express 5 serving the contract through `@orpc/server` + `@orpc/openapi`. Drizzle ORM over Node's built-in `node:sqlite`. drizzle-kit migrations applied at boot. Env parsed with Zod.                         |
+| `apps/web`          | Vite + React 19 + Mantine + `@tanstack/react-query` + `@orpc/tanstack-query` + react-router.                                                                                                                  |
 
 ## Rule 1 — derive, never duplicate
 
 ```
-Drizzle table -> (drizzle-zod) -> Zod schema -> (ts-rest) -> contract
+Drizzle table -> (drizzle-zod) -> Zod schema -> (oRPC) -> contract
                                                               |-> Express handler types + runtime validation
                                                               |-> typed React Query hooks
                                                               `-> generated SQL migration
@@ -61,14 +81,19 @@ npm run dev      # api + web, watch mode
 
 ## Dev environment
 
-- Node 24 LTS, pinned in `.nvmrc`. `node:sqlite` requires it.
+- Node 24 LTS, pinned in `.nvmrc`. **`nvm use` is not optional**: on Node 23 and below,
+  `node:sqlite` has no `Statement.setReturnArrays`, and every drizzle migration throws
+  `stmt.setReturnArrays is not a function`. That error means the wrong Node, nothing else.
 - npm workspaces. Install at the root; never `npm install` inside a workspace.
 - The API creates and migrates its SQLite file at boot. There is no database to start.
+- The API also ingests the dataset at boot when the table is empty, so a fresh clone reaches
+  a populated app from `npm run dev` alone. Set `INGEST_ON_BOOT=false` to stop it.
 - API env is parsed with Zod at startup; a missing or malformed var is a hard crash, not a default.
 
 | Command               | Does                                                |
 | --------------------- | --------------------------------------------------- |
 | `npm run dev`         | Run api + web in watch mode                         |
+| `npm run ingest`      | Download and upsert the dataset (`-- --limit=50`)   |
 | `npm run check`       | **The gate.** Everything below, in order            |
 | `npm run typecheck`   | `tsc --noEmit` per workspace                        |
 | `npm run lint`        | `eslint --max-warnings=0`                           |
@@ -110,7 +135,7 @@ Errors: fail loudly at the boundary. Parse at the edge with Zod; never guess a d
 ## Testing
 
 - `vitest` everywhere. `npm test` runs all workspaces.
-- API tests boot the **real** app on port 0 and drive it with the generated ts-rest client. No supertest, no mocked HTTP layer.
+- API tests boot the **real** app on port 0 and drive it with the typed oRPC client. No supertest, no mocked HTTP layer.
 - Each test gets its own SQLite file; migrations run at boot as in production.
 - Test names describe behaviour: `returns 404 when the id is unknown`.
 - A new route is not done without a test that calls it through the client.
@@ -139,3 +164,14 @@ Agents that do not load `.claude/skills/` automatically should read these direct
 | [`implementor-reviewer`](.claude/skills/implementor-reviewer/SKILL.md) | Working through an agreed plan         |
 | [`grill-me`](.claude/skills/grill-me/SKILL.md)                         | Stress-testing a plan or design        |
 | [`git-commit-format`](.claude/skills/git-commit-format/SKILL.md)       | Writing a commit message               |
+
+Learning the stack rather than shipping to it:
+
+| Skill                                                                          | Read it when                               |
+| ------------------------------------------------------------------------------ | ------------------------------------------ |
+| [`start-here`](.claude/skills/start-here/SKILL.md)                             | First contact with this repo               |
+| [`js-for-csharp-devs`](.claude/skills/js-for-csharp-devs/SKILL.md)             | Coming from C#/.NET to TypeScript          |
+| [`frontend-for-csharp-devs`](.claude/skills/frontend-for-csharp-devs/SKILL.md) | Coming from Blazor/Razor to React          |
+| [`self-review`](.claude/skills/self-review/SKILL.md)                           | Before calling any change done             |
+| [`ingest-data`](.claude/skills/ingest-data/SKILL.md)                           | Operating or re-running the dataset ingest |
+| [`debug-this-stack`](.claude/skills/debug-this-stack/SKILL.md)                 | Something broke and you want the fix       |

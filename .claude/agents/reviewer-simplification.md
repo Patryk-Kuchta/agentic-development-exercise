@@ -17,7 +17,7 @@ can be deleted. Ignore correctness — that's `reviewer-regression`.
 In this project the commonest duplication is re-declaring something derivable:
 
 - A type, `interface`, Zod schema, or SQL that restates `schema.ts`.
-- A `fetch` or axios call where a `@ts-rest/react-query` hook exists.
+- A `fetch` or axios call where a `@orpc/tanstack-query` hook exists.
 - A hand-rolled input, table, modal, toast, date formatter, form-state hook, or
   loading boolean — check `use-the-library` and name the API that replaces it.
 - A new dependency that duplicates Mantine, React Query, Zod, or Drizzle.

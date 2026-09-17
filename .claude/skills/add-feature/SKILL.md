@@ -12,16 +12,16 @@ Work in this order. Each step consumes the output of the previous one.
 3. **`packages/contract/src/zod.ts`** — derive with drizzle-zod
    (`createInsertSchema` / `createSelectSchema`). Refine here — `.omit()`,
    `.extend()` for request-only fields. Do not restate a column.
-4. **`packages/contract/src/contract.ts`** — add the route to the ts-rest
-   contract from those Zod schemas: method, path, `body`, `responses`. Export
-   from `src/index.ts`.
+4. **`packages/contract/src/contract.ts`** — add the procedure to the oRPC
+   contract from those Zod schemas: `oc.route({ method, path })` plus
+   `.input()`, `.output()` and any `.errors()`. Export from `src/index.ts`.
 5. **`apps/api`** — implement the handler in the router. Its argument and return
    types come from the contract; TypeScript tells you the shape. Query with
    Drizzle.
 6. **`apps/api` vitest test** — boot the real app on port 0, call the new route
-   through the generated ts-rest client. Cover the success path and the failure
+   through the typed oRPC client. Cover the success path and the failure
    the contract declares.
-7. **`apps/web`** — consume the generated `@ts-rest/react-query` hook. Add the
+7. **`apps/web`** — consume the generated `@orpc/tanstack-query` hook. Add the
    route/page. Mantine for UI, `@mantine/form` for form state.
 
 Then `npm run check`.

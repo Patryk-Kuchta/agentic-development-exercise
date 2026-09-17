@@ -24,7 +24,7 @@ Flag these as findings wherever they appear in the diff:
 - A migration edited rather than added.
 - A hand-written type, Zod schema, SQL, or `fetch` that duplicates something the
   contract already derives.
-- An API route with no vitest test driving it through the ts-rest client.
+- An API route with no vitest test driving it through the oRPC client.
 - A swallowed error keeping a broken path alive.
 
 ## Teardown

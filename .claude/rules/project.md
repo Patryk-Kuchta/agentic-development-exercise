@@ -2,14 +2,14 @@
 
 npm-workspaces monorepo, Node 24 (`.nvmrc`).
 
-- `packages/contract` — Drizzle schema -> drizzle-zod -> ts-rest contract. Source of truth.
-- `apps/api` — Express 5 + @ts-rest/express, Drizzle over `node:sqlite`, vitest.
-- `apps/web` — Vite + React 19 + Mantine + React Query + @ts-rest/react-query.
+- `packages/contract` — Drizzle schema -> drizzle-zod -> oRPC contract. Source of truth.
+- `apps/api` — Express 5 + @orpc/server, Drizzle over `node:sqlite`, vitest.
+- `apps/web` — Vite + React 19 + Mantine + React Query + @orpc/tanstack-query.
 
 ## Derive, never duplicate
 
 ```
-Drizzle table -> Zod schema -> ts-rest contract -> handler types + validation, React Query hooks, SQL migration
+Drizzle table -> Zod schema -> oRPC contract -> handler types + validation, React Query hooks, SQL migration
 ```
 
 A field is declared once, in `packages/contract/src/schema.ts`. Everything else
