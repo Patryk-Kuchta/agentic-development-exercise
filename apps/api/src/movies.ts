@@ -229,6 +229,34 @@ export function findMovie(db: Db, id: number, viewer: Viewer): Movie | undefined
   return { ...row, isFavourite: viewer !== undefined && isFavourite(db, viewer, id) };
 }
 
+/**
+ * Summaries for a set of ids, returned in the order the ids were given.
+ *
+ * Suggestions arrive already ranked by score, and SQL has no opinion about that
+ * order, so the rows are put back into it here rather than re-sorted by the
+ * caller.
+ */
+export function findSummariesByIds(db: Db, ids: readonly number[], viewer: Viewer): MovieSummary[] {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const rows = withIsFavourite(
+    db,
+    db.select(summaryColumns).from(movies).where(inArray(movies.id, ids)).all(),
+    viewer,
+  );
+
+  const byId = new Map(rows.map((row) => [row.id, row]));
+
+  /* A film deleted between the scan and this query simply drops out, rather
+     than becoming an undefined hole in the middle of the list. */
+  return ids.flatMap((id) => {
+    const row = byId.get(id);
+    return row === undefined ? [] : [row];
+  });
+}
+
 /** Whether a film exists at all, which is what a favourite's 404 turns on. */
 export function movieExists(db: Db, id: number): boolean {
   return db.select({ id: movies.id }).from(movies).where(eq(movies.id, id)).get() !== undefined;

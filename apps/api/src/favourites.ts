@@ -35,6 +35,16 @@ export function isFavourite(db: Db, userId: number, movieId: number): boolean {
   );
 }
 
+/** Every film the user has favourited, which is what a taste vector is built from. */
+export function listFavouriteIds(db: Db, userId: number): number[] {
+  return db
+    .select({ movieId: favourites.movieId })
+    .from(favourites)
+    .where(eq(favourites.userId, userId))
+    .all()
+    .map((row) => row.movieId);
+}
+
 /**
  * Which of these films the user has favourited, as one query.
  *
