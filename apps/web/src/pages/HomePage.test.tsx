@@ -1,9 +1,8 @@
-import { MantineProvider } from '@mantine/core';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiOutputs } from '../api/client';
+import { jsonResponse, renderPage } from '../test/render';
 import { HomePage } from './HomePage';
 
 /* The oRPC link binds `globalThis.fetch` when it is constructed, which happens
@@ -18,25 +17,11 @@ const fetchMock = vi.hoisted(() => {
 /* The payload is typed by the contract, so a stats field added later breaks this
    stub at compile time rather than silently returning the wrong shape. */
 function respondWithStats(stats: ApiOutputs['stats']) {
-  fetchMock.mockResolvedValue(
-    new Response(JSON.stringify(stats), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    }),
-  );
+  fetchMock.mockResolvedValue(jsonResponse(stats));
 }
 
 function renderHomePage() {
-  /* retry: false keeps the error test from waiting out React Query's backoff. */
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <MantineProvider env="test">
-        <HomePage />
-      </MantineProvider>
-    </QueryClientProvider>,
-  );
+  return renderPage(<HomePage />);
 }
 
 describe('HomePage', () => {

@@ -21,8 +21,9 @@ export function movieDraft(overrides: Partial<MovieDraft>): MovieDraft {
   };
 }
 
-export function insertMovie(db: Db, overrides: Partial<MovieDraft>): void {
-  db.insert(movies).values(movieDraft(overrides)).run();
+/** Returns the generated id, which is what a test needs to call `/movies/{id}`. */
+export function insertMovie(db: Db, overrides: Partial<MovieDraft>): number {
+  return db.insert(movies).values(movieDraft(overrides)).returning({ id: movies.id }).get().id;
 }
 
 /**

@@ -17,6 +17,15 @@ window.matchMedia = (query: string): MediaQueryList => ({
   dispatchEvent: () => false,
 });
 
+/* jsdom ships no `ResizeObserver` either, and Mantine's `Select` mounts its
+   dropdown inside a `ScrollArea` that observes its own size. Nothing in jsdom
+   has a size, so an observer that never reports anything is the honest stub. */
+globalThis.ResizeObserver = class {
+  observe = () => undefined;
+  unobserve = () => undefined;
+  disconnect = () => undefined;
+};
+
 afterEach(() => {
   cleanup();
 });

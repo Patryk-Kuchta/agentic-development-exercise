@@ -9,6 +9,50 @@ import type { Db } from './db';
  */
 
 /**
+ * Who is asking, or `undefined` for a signed-out caller.
+ *
+ * Reads take it because some facts about a film — whether *you* have favourited
+ * it — are facts about the pair, not about the film. Nothing on `main` uses it
+ * yet; exercise 2 is what gives it meaning.
+ */
+export type Viewer = number | undefined;
+
+/**
+ * Every column except the vector, named one by one because Drizzle has no
+ * "all columns but this one" helper. `plot_embedding` is 6 KiB a row and is
+ * never sent to a browser, so it is not read in the first place.
+ *
+ * This list cannot silently drift: anything annotated as returning `Movie` —
+ * a type derived from the table — stops compiling if a column added to
+ * `schema.ts` is left out here.
+ */
+export const movieColumns = {
+  id: movies.id,
+  imdbId: movies.imdbId,
+  title: movies.title,
+  type: movies.type,
+  plot: movies.plot,
+  fullplot: movies.fullplot,
+  poster: movies.poster,
+  rated: movies.rated,
+  runtime: movies.runtime,
+  genres: movies.genres,
+  castMembers: movies.castMembers,
+  directors: movies.directors,
+  writers: movies.writers,
+  countries: movies.countries,
+  languages: movies.languages,
+  imdbRating: movies.imdbRating,
+  imdbVotes: movies.imdbVotes,
+  metacritic: movies.metacritic,
+  awardsWins: movies.awardsWins,
+  awardsNominations: movies.awardsNominations,
+  awardsText: movies.awardsText,
+  numMflixComments: movies.numMflixComments,
+  ingestedAt: movies.ingestedAt,
+};
+
+/**
  * `COUNT(*)` always produces exactly one row, but `noUncheckedIndexedAccess`
  * does not know that, so the impossible case gets a message rather than a `!`.
  */
