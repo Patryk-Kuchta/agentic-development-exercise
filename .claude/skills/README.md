@@ -1,6 +1,7 @@
 # Skills
 
-Skills load on demand, so detail lives here rather than in `.claude/rules/`.
+Skills load on demand, so detail lives here rather than in `AGENTS.md`, which is
+loaded into every conversation.
 
 Workflow skills
 

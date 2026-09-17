@@ -2,6 +2,10 @@
 
 Instructions for coding agents working in this repo. Humans should read this too.
 
+This is the only copy. `CLAUDE.md` imports it, and
+`.github/copilot-instructions.md` and `.cursor/rules/project.mdc` are **symlinks** to it —
+edit this file, never those.
+
 ## What this is
 
 **Movie Suggester** — a small app over the

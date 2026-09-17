@@ -7,7 +7,7 @@ Run one step of the plan at a time. Each step is a loop.
 
 ## Setup
 
-Load `code-style` and read `.claude/rules/`. Create `.claude/sessions/<sessionID>/` for
+Load `code-style` and read `AGENTS.md`. Create `.claude/sessions/<sessionID>/` for
 this session's shared notes.
 
 If the step touches `schema.ts`, load `change-schema`; if it adds a route or

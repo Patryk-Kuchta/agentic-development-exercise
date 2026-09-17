@@ -19,7 +19,7 @@ infra='(^|[;&|(])[[:space:]]*(sudo[[:space:]]+)?(docker-compose|docker|podman|ap
 brew='(^|[;&|(])[[:space:]]*(sudo[[:space:]]+)?brew[[:space:]]+install'
 
 if grep -Eq "$infra" <<<"$cmd" || grep -Eq "$brew" <<<"$cmd"; then
-  deny "Blocked by the npm-only rule (AGENTS.md, .claude/rules/project.md): this repo must run with \`nvm use && npm install && npm run dev\` and no Docker, container runtime, daemon, database server, or system package install. SQLite is Node's built-in \`node:sqlite\`. If the task genuinely needs infrastructure, stop and ask the user."
+  deny "Blocked by the npm-only rule (AGENTS.md, rule 2): this repo must run with \`nvm use && npm install && npm run dev\` and no Docker, container runtime, daemon, database server, or system package install. SQLite is Node's built-in \`node:sqlite\`. If the task genuinely needs infrastructure, stop and ask the user."
 fi
 
 # Allow-list read-only commands, but only when unchained — an allow here bypasses

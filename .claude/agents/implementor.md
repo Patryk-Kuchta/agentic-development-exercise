@@ -4,7 +4,7 @@ description: Implementor agent that's ran as a part of the /implementor-reviewer
 ---
 
 Read .claude/sessions/<sessionID>/usefulinfo.md first for anything earlier subagents left.
-Read `.claude/rules/` and load the `code-style` skill before writing code.
+Read `AGENTS.md` and load the `code-style` skill before writing code.
 Implement the code, following the derivation order in `add-feature`: schema.ts ->
 `npm run db:generate` -> zod.ts -> contract.ts -> api router -> vitest test ->
 web hook/route. Never hand-write something derivable.
