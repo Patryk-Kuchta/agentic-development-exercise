@@ -60,6 +60,30 @@ export const movieSummarySchema = movieRowSchema
 export type MovieSummary = z.infer<typeof movieSummarySchema>;
 
 /**
+ * A film with the similarity that put it there. The score travels with it so
+ * the UI can show its working — a recommendation you cannot interrogate is
+ * indistinguishable from a guess.
+ *
+ * Roughly `-1` to `1`, because cosine similarity is signed: two plots can point
+ * in opposite directions. Deliberately not bounded here — floating-point
+ * arithmetic puts a vector's similarity with itself a hair over 1, and a
+ * `.max(1)` would turn that into a 500 on the way out.
+ */
+export const scoredMovieSchema = z.object({
+  movie: movieSummarySchema,
+  score: z.number(),
+});
+
+/**
+ * A suggestion from the user's taste, plus the favourite that pulled it in —
+ * "because you liked *Alien*". Built on `scoredMovieSchema` rather than beside
+ * it, so the two cannot disagree about what a scored film looks like.
+ */
+export const suggestionSchema = scoredMovieSchema.extend({
+  because: movieSummarySchema,
+});
+
+/**
  * The answer to "is this film now one of mine?", which is all a heart needs
  * back from a toggle. The owner is whoever is signed in, so `userId` is not
  * echoed back to the person who just sent it.
