@@ -92,7 +92,7 @@ Before adding a dependency, ask: does it need a service, daemon, container, or n
 - Banned: native addons — `better-sqlite3`, `bcrypt` (use `node:crypto` scrypt), `canvas`, `sharp`.
 - Allowed: any pure-JS/WASM npm package.
 
-If a task seems to need infrastructure, stop and ask the user.
+If a task seems to need infrastructure, stop and ask the user. See `.claude/skills/add-dependency/SKILL.md`.
 
 ## Setup commands
 
@@ -133,6 +133,8 @@ lint-staged (eslint `--fix` + prettier) on staged files; it is not a substitute 
 
 ## Code style
 
+Full conventions: `.claude/skills/code-style/SKILL.md`.
+
 TypeScript config extends a copied `@tsconfig/strictest`, plus:
 
 - `verbatimModuleSyntax` — `import type` for type-only imports.
@@ -163,7 +165,7 @@ Errors: fail loudly at the boundary. Parse at the edge with Zod; never guess a d
 
 ## PR and commit conventions
 
-- Commits: single line, imperative, max 72 chars, no body, no trailers.
+- Commits: single line, imperative, max 72 chars, no body, no trailers. See `.claude/skills/git-commit-format/SKILL.md`.
 - `npm run check` must be green before you commit. Never commit with it red — the
   husky pre-commit hook only lints staged files.
 - Generated migration SQL is committed alongside the schema change that produced it, in the same commit.
@@ -172,6 +174,27 @@ Errors: fail loudly at the boundary. Parse at the edge with Zod; never guess a d
 
 ## Skills
 
-There are none on this branch. The `.claude/skills/` library — the house procedures for
-adding a feature, changing the schema, running the gate and reviewing your own diff —
-arrives on `exercise-3-setup`. Until then this file is the whole of the house rules.
+Agents that do not load `.claude/skills/` automatically should read these directly.
+
+| Skill                                                                  | Read it when                           |
+| ---------------------------------------------------------------------- | -------------------------------------- |
+| [`add-feature`](.claude/skills/add-feature/SKILL.md)                   | Adding an entity or a route            |
+| [`change-schema`](.claude/skills/change-schema/SKILL.md)               | Editing `schema.ts` or migrations      |
+| [`use-the-library`](.claude/skills/use-the-library/SKILL.md)           | Before writing any helper or util      |
+| [`verify`](.claude/skills/verify/SKILL.md)                             | Running the gate, reading its failures |
+| [`add-dependency`](.claude/skills/add-dependency/SKILL.md)             | Adding an npm package                  |
+| [`code-style`](.claude/skills/code-style/SKILL.md)                     | Writing or reviewing any code          |
+| [`implementor-reviewer`](.claude/skills/implementor-reviewer/SKILL.md) | Working through an agreed plan         |
+| [`grill-me`](.claude/skills/grill-me/SKILL.md)                         | Stress-testing a plan or design        |
+| [`git-commit-format`](.claude/skills/git-commit-format/SKILL.md)       | Writing a commit message               |
+
+Learning the stack rather than shipping to it:
+
+| Skill                                                              | Read it when                                 |
+| ------------------------------------------------------------------ | -------------------------------------------- |
+| [`start-here`](.claude/skills/start-here/SKILL.md)                 | First contact with this repo                 |
+| [`learn-this-stack`](.claude/skills/learn-this-stack/SKILL.md)     | Explaining this repo to someone new to it    |
+| [`learn-the-frontend`](.claude/skills/learn-the-frontend/SKILL.md) | Writing or reviewing React when React is new |
+| [`self-review`](.claude/skills/self-review/SKILL.md)               | Before calling any change done               |
+| [`ingest-data`](.claude/skills/ingest-data/SKILL.md)               | Operating or re-running the dataset ingest   |
+| [`debug-this-stack`](.claude/skills/debug-this-stack/SKILL.md)     | Something broke and you want the fix         |

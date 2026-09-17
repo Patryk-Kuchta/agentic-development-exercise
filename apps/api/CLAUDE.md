@@ -36,8 +36,7 @@ without HTTP.
 ## Coming from ASP.NET?
 
 - `env.ts` is `IOptions<T>` with validation, except a bad value crashes at boot instead of
-  at first use. That is deliberate: see "fail loudly at the boundary" in
-  [AGENTS.md](../../AGENTS.md).
+  at first use. That is deliberate: see "fail loudly at the boundary" in the code-style skill.
 - Drizzle is EF Core with the magic removed. There is no change tracker and no lazy loading;
   a query runs when you call `.all()` / `.get()`. What you write is what executes.
 - There is no DI container. A handler that needs the database is passed `db`. That is why
@@ -52,8 +51,8 @@ Face datasets-server rows API and upserts on `imdb_id`, which makes it idempoten
 collapses the dataset's 45 duplicate ids to land 1455 rows.
 
 Auto-ingest starts **after** `listen`, and a failure logs loudly without killing the
-process — a network blip must not stop `npm run dev` from serving. The env vars it reads are
-in `src/env.ts`, parsed with the rest.
+process — a network blip must not stop `npm run dev` from serving. Details and env vars:
+`.claude/skills/ingest-data/SKILL.md`.
 
 ## Embeddings
 

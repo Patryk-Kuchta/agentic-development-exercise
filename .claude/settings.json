@@ -1,0 +1,72 @@
+{
+  "//": "Project settings. `_disabledHooks` is not read by Claude Code — it holds the opt-in Stop gate; move that block into `hooks` to enable it. The Notification hook appends to .claude/permission-requests.log; add that path to .gitignore.",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(ls:*)",
+      "Bash(npm run check:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm test:*)",
+      "Bash(npx drizzle-kit generate:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "ask": ["Bash(git push:*)", "Bash(npm install:*)", "Bash(npm i:*)"],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(rm -rf:*)",
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "Bash(podman:*)",
+      "Bash(brew install:*)",
+      "Bash(apt-get:*)",
+      "Bash(apt:*)",
+      "Bash(systemctl:*)",
+      "Bash(pg_ctl:*)",
+      "Bash(postgres:*)",
+      "Bash(mysqld:*)",
+      "Bash(redis-server:*)",
+      "Bash(minikube:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/no-infra-hook.sh\""
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/record-permission-request.sh\""
+          }
+        ]
+      }
+    ]
+  },
+  "_disabledHooks": {
+    "//": "OPT-IN. Blocks every turn until `npm run check` is green. Correct but slow — it runs typecheck, lint, prettier, vitest, drizzle-kit and the web build on every turn, including read-only ones. To enable, cut the `Stop` array below and paste it into `hooks` above. See .claude/hooks/README.md.",
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/gate-on-stop.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
