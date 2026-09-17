@@ -11,6 +11,7 @@ import {
   Select,
   SimpleGrid,
   Stack,
+  Switch,
   Text,
   TextInput,
   Title,
@@ -21,6 +22,8 @@ import { Link, useSearchParams } from 'react-router';
 import { z } from 'zod';
 
 import { orpc, type ApiOutputs } from '../api/client';
+import { useAuth } from '../auth/context';
+import { FavouriteButton } from '../components/FavouriteButton';
 import { MoviePoster } from '../components/MoviePoster';
 import { formatRating, formatRuntime } from '../format';
 
@@ -150,16 +153,58 @@ function MovieCard({ movie }: { movie: MovieSummary }) {
 
         <Group gap="xs" justify="space-between" mt="auto">
           <RatingBadge rating={movie.imdbRating} />
-          <Text size="xs" c="dimmed">
-            {movie.runtime === null ? 'Runtime unknown' : formatRuntime(movie.runtime)}
-          </Text>
+          <Group gap={4}>
+            <Text size="xs" c="dimmed">
+              {movie.runtime === null ? 'Runtime unknown' : formatRuntime(movie.runtime)}
+            </Text>
+            <FavouriteButton
+              movieId={movie.id}
+              title={movie.title}
+              isFavourite={movie.isFavourite}
+            />
+          </Group>
         </Group>
       </Stack>
     </Card>
   );
 }
 
-function NoMatches() {
+/**
+ * Three different nothings. The favourites page is this component with the
+ * filter pinned on, so an empty result there means "you have favourited
+ * nothing", not "narrow your search" — and telling a learner to change a
+ * search they never typed reads as a bug.
+ */
+function NoMatches({
+  favouritesOnly,
+  hasFilters,
+}: {
+  favouritesOnly: boolean;
+  hasFilters: boolean;
+}) {
+  if (favouritesOnly && !hasFilters) {
+    return (
+      <Alert color="gray" variant="light" title="No favourites yet">
+        <Stack gap="xs" align="flex-start">
+          <Text size="sm">Films you favourite show up here.</Text>
+          <Button component={Link} to="/movies" variant="light">
+            Browse the movies
+          </Button>
+        </Stack>
+      </Alert>
+    );
+  }
+
+  if (favouritesOnly) {
+    return (
+      <Alert color="gray" variant="light" title="No favourites match those filters">
+        <Text size="sm">
+          You have favourited something, but nothing that matches this search and genre.
+        </Text>
+      </Alert>
+    );
+  }
+
   return (
     <Alert color="gray" variant="light" title="No films match those filters">
       <Text size="sm">
@@ -173,9 +218,17 @@ function NoMatches() {
  * One component per outcome keeps the page body a flat list of React Query
  * states rather than a nest of ternaries.
  */
-function MovieResults({ result }: { result: ApiOutputs['movies']['list'] }) {
+function MovieResults({
+  result,
+  favouritesOnly,
+  hasFilters,
+}: {
+  result: ApiOutputs['movies']['list'];
+  favouritesOnly: boolean;
+  hasFilters: boolean;
+}) {
   if (result.items.length === 0) {
-    return <NoMatches />;
+    return <NoMatches favouritesOnly={favouritesOnly} hasFilters={hasFilters} />;
   }
 
   return (
@@ -187,8 +240,19 @@ function MovieResults({ result }: { result: ApiOutputs['movies']['list'] }) {
   );
 }
 
-export function MoviesPage() {
+/**
+ * `favouritesOnly` pins the filter on for the favourites page, which is
+ * otherwise this exact component — see `FavouritesPage.tsx`. The toggle below
+ * is therefore only offered on the open list.
+ */
+export function MoviesPage({ favouritesOnly = false }: { favouritesOnly?: boolean }) {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  /* /favourites is linkable, so a signed-out visitor can land on it. Falling
+     through would drop the filter and list the whole catalogue under the
+     heading "Your favourites", which is worse than saying nothing. */
+  const signedOutOnFavourites = favouritesOnly && user === undefined;
 
   const filters = filtersSchema.parse({
     q: searchParams.get('q') ?? '',
@@ -199,6 +263,11 @@ export function MoviesPage() {
 
   /* The contract rejects a blank search, and " " is a blank search. */
   const search = filters.q.trim();
+
+  /* Pinned on the favourites page, otherwise driven by the toggle in the URL.
+     A signed-out visitor has no favourites to filter to, so it stays off. */
+  const showFavouritesOnly =
+    user !== undefined && (favouritesOnly || searchParams.get('favourites') === 'true');
 
   const listQuery = useQuery(
     orpc.movies.list.queryOptions({
@@ -211,6 +280,9 @@ export function MoviesPage() {
            means absent. */
         ...(search === '' ? {} : { search }),
         ...(filters.genre === '' ? {} : { genre: filters.genre }),
+        /* The contract takes the word, not a boolean: a query string has no
+           booleans, and `z.coerce.boolean()` would read "false" as true. */
+        ...(showFavouritesOnly ? { favouritesOnly: 'true' } : {}),
       },
     }),
   );
@@ -235,6 +307,23 @@ export function MoviesPage() {
     setSearchParams(withPage(searchParams, value));
   };
 
+  if (signedOutOnFavourites) {
+    return (
+      <Container size="lg" py="xl">
+        <Stack gap="lg">
+          <Title order={1}>Your favourites</Title>
+          <Alert color="gray" variant="light" title="Sign in to see your favourites">
+            <Stack gap="xs" align="flex-start">
+              <Text size="sm">Favourites belong to an account.</Text>
+              <Button component={Link} to="/sign-in" variant="light">
+                Sign in
+              </Button>
+            </Stack>
+          </Alert>
+        </Stack>
+      </Container>
+    );
+  }
   return (
     <Container size="xl" py="xl">
       <Stack gap="lg">
@@ -243,7 +332,7 @@ export function MoviesPage() {
             ← Movie Suggester
           </Anchor>
           <Group justify="space-between" align="baseline">
-            <Title order={1}>Movies</Title>
+            <Title order={1}>{favouritesOnly ? 'Your favourites' : 'Movies'}</Title>
             {listQuery.isSuccess && listQuery.data.total > 0 ? (
               <Text size="sm" c="dimmed">
                 Page {listQuery.data.page} of {listQuery.data.totalPages} · {listQuery.data.total}{' '}
@@ -290,6 +379,21 @@ export function MoviesPage() {
               onChange={setSort}
             />
           </SimpleGrid>
+
+          {/* Only on the open list, and only to somebody who can have
+              favourites — on the favourites page the filter is the page. */}
+          {!favouritesOnly && user !== undefined ? (
+            <Switch
+              mt="sm"
+              label="Favourites only"
+              checked={showFavouritesOnly}
+              onChange={(event) => {
+                setSearchParams(
+                  withFilter(searchParams, 'favourites', event.currentTarget.checked ? 'true' : ''),
+                );
+              }}
+            />
+          ) : null}
         </Card>
 
         {listQuery.isPending ? <Loader /> : null}
@@ -310,7 +414,13 @@ export function MoviesPage() {
           </Alert>
         ) : null}
 
-        {listQuery.isSuccess ? <MovieResults result={listQuery.data} /> : null}
+        {listQuery.isSuccess ? (
+          <MovieResults
+            result={listQuery.data}
+            favouritesOnly={favouritesOnly || showFavouritesOnly}
+            hasFilters={search !== '' || filters.genre !== ''}
+          />
+        ) : null}
 
         {listQuery.isSuccess && listQuery.data.totalPages > 1 ? (
           <Group justify="center">
