@@ -1,7 +1,11 @@
 {
-  "//": "Project settings. `_disabledHooks` is not read by Claude Code — it holds the opt-in Stop gate; move that block into `hooks` to enable it. The Notification hook appends to .claude/permission-requests.log; add that path to .gitignore.",
+  "//": "Project settings. `_disabledHooks` is not read by Claude Code — it holds the opt-in Stop gate; move that block into `hooks` to enable it. The Notification hook appends to .claude/permission-requests.log; add that path to .gitignore. `enableAllProjectMcpServers` starts the two servers in .mcp.json without a per-session prompt.",
+  "enableAllProjectMcpServers": true,
   "permissions": {
     "allow": [
+      "mcp__sqlite__list_tables",
+      "mcp__sqlite__describe_table",
+      "mcp__sqlite__query",
       "Read",
       "Glob",
       "Grep",
