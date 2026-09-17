@@ -4,11 +4,23 @@ import { OpenAPILink } from '@orpc/openapi-client/fetch';
 import { createTanstackQueryUtils } from '@orpc/tanstack-query';
 import { contract } from '@app/contract';
 
+import { readToken } from '../auth/token';
+
 /* OpenAPILink builds requests with `new URL(...)`, which needs an absolute URL,
    so /api is resolved against the page's own origin. Staying same-origin is what
    lets the Vite dev server proxy /api to the API process (see vite.config.ts)
    and is why the project never needs CORS. */
-const link = new OpenAPILink(contract, { url: new URL('/api', window.location.origin) });
+const link = new OpenAPILink(contract, {
+  url: new URL('/api', window.location.origin),
+  /* A function, not an object: it is evaluated per request, so the token that
+     signing in has just written is presented on the very next call. Capturing
+     the value once here would leave the app anonymous until a reload. */
+  headers: () => {
+    const token = readToken();
+
+    return token === undefined ? {} : { authorization: `Bearer ${token}` };
+  },
+});
 
 /**
  * The typed API client. Every method, argument and return type comes from the

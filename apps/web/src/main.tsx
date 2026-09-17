@@ -10,6 +10,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router/dom';
 
+import { AuthProvider } from './auth/AuthProvider';
 import { router } from './router';
 import { theme } from './theme';
 
@@ -33,7 +34,11 @@ createRoot(rootElement).render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider theme={theme} defaultColorScheme="auto">
         <Notifications />
-        <RouterProvider router={router} />
+        {/* Inside QueryClientProvider, because it asks the API who owns the
+            stored token; outside the router, so every page sees the answer. */}
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
       </MantineProvider>
     </QueryClientProvider>
   </StrictMode>,
