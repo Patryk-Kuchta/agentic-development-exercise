@@ -174,12 +174,11 @@ Agents that do not load `.claude/skills/` automatically should read these direct
 
 Learning the stack rather than shipping to it:
 
-| Skill                                                                          | Read it when                                  |
-| ------------------------------------------------------------------------------ | --------------------------------------------- |
-| [`start-here`](.claude/skills/start-here/SKILL.md)                             | First contact with this repo                  |
-| [`learn-this-stack`](.claude/skills/learn-this-stack/SKILL.md)                 | New to TypeScript or React, from any language |
-| [`js-for-csharp-devs`](.claude/skills/js-for-csharp-devs/SKILL.md)             | Coming from C#/.NET to TypeScript             |
-| [`frontend-for-csharp-devs`](.claude/skills/frontend-for-csharp-devs/SKILL.md) | Coming from Blazor/Razor to React             |
-| [`self-review`](.claude/skills/self-review/SKILL.md)                           | Before calling any change done                |
-| [`ingest-data`](.claude/skills/ingest-data/SKILL.md)                           | Operating or re-running the dataset ingest    |
-| [`debug-this-stack`](.claude/skills/debug-this-stack/SKILL.md)                 | Something broke and you want the fix          |
+| Skill                                                              | Read it when                                 |
+| ------------------------------------------------------------------ | -------------------------------------------- |
+| [`start-here`](.claude/skills/start-here/SKILL.md)                 | First contact with this repo                 |
+| [`learn-this-stack`](.claude/skills/learn-this-stack/SKILL.md)     | Explaining this repo to someone new to it    |
+| [`learn-the-frontend`](.claude/skills/learn-the-frontend/SKILL.md) | Writing or reviewing React when React is new |
+| [`self-review`](.claude/skills/self-review/SKILL.md)               | Before calling any change done               |
+| [`ingest-data`](.claude/skills/ingest-data/SKILL.md)               | Operating or re-running the dataset ingest   |
+| [`debug-this-stack`](.claude/skills/debug-this-stack/SKILL.md)     | Something broke and you want the fix         |

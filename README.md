@@ -250,7 +250,7 @@ Goal: using it as a collaborator on an ambiguous problem.
 | `npm run check`  | **The gate.** Types, lint, format, tests, build       |
 | `npm run ingest` | Re-download the dataset (`-- --limit=50` for a slice) |
 
-New to this stack? Start with the `start-here` skill in `.claude/skills/`, then
-`learn-this-stack` — it translates the stack from whatever language you already write, and
-tells you what to unlearn. (C#/.NET and Blazor also get a longer guide each.) Full detail
-for agents lives in [AGENTS.md](AGENTS.md).
+New to this stack? Start with the `start-here` skill in `.claude/skills/`. Then use
+`learn-this-stack`: tell the agent which language you normally write, point it at a file or
+ask it a question, and it explains this repo in those terms. Full detail for agents lives
+in [AGENTS.md](AGENTS.md).

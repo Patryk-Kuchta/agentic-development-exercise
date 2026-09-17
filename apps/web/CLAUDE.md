@@ -24,10 +24,11 @@ const { data, isPending, isError } = useQuery(orpc.stats.queryOptions());
 | `src/router.tsx`  | the route table                                       |
 | `src/theme.ts`    | Mantine theme and component defaults                  |
 
-## Coming from Blazor or Razor?
+## New to React?
 
-`.claude/skills/frontend-for-csharp-devs/SKILL.md` has the full translation. The three that
-bite hardest:
+`.claude/skills/learn-the-frontend/SKILL.md` translates React, Mantine and React Query from
+whatever UI you have built before; `learn-this-stack` does the language side. The three that
+bite hardest whatever your background:
 
 - A component is a **function that re-runs**, not an object that persists. There are no
   fields; `useState` is where a value survives a re-render.

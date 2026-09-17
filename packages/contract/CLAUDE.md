@@ -14,11 +14,13 @@ The source of truth. Everything else in the repo is downstream of this folder.
 Read them in that order and the design explains itself. Write them in that order too —
 `.claude/skills/add-feature/SKILL.md` is the procedure.
 
-## Coming from C#?
+## If this pipeline is new to you
 
-Think of `schema.ts` as an EF Core entity class, except that it also generates the
+Whatever you normally write, something in it plays the part of `schema.ts` — an ORM entity,
+a model class, a struct with tags. The difference is that this one also generates the
 migration, the validation, the DTOs **and** the client. There is no separate DTO layer
-because there is nothing for a DTO to add.
+because there is nothing for a DTO to add. `.claude/skills/learn-this-stack/SKILL.md`
+translates the rest into the language you already know.
 
 `contract.ts` is closest to a shared interface in a class library referenced by both the
 server and the client — the difference is that the Zod schemas in it are real objects at
