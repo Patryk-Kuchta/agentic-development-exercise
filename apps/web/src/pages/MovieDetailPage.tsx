@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { orpc, type ApiOutputs } from '../api/client';
 import { FavouriteButton } from '../components/FavouriteButton';
 import { MoviePoster } from '../components/MoviePoster';
+import { ScoredMovieGrid } from '../components/ScoredMovieGrid';
 import { formatCount, formatRating, formatRuntime } from '../format';
 
 type Movie = ApiOutputs['movies']['get'];
@@ -158,6 +159,34 @@ function MovieDetail({ movie }: { movie: Movie }) {
   );
 }
 
+/**
+ * The films whose plots point closest to this one. A film with no embedding
+ * gets an honest sentence rather than an empty strip with no explanation.
+ */
+function MoreLikeThis({ id }: { id: number }) {
+  const similarQuery = useQuery(orpc.movies.similar.queryOptions({ input: { id, limit: 6 } }));
+
+  if (!similarQuery.isSuccess) {
+    return null;
+  }
+
+  return (
+    <Stack gap="sm" mt="xl">
+      <Title order={2} fz="h4">
+        More like this
+      </Title>
+
+      {similarQuery.data.length === 0 ? (
+        <Text size="sm" c="dimmed" fs="italic">
+          This film has no plot embedding, so there is nothing to compare it against.
+        </Text>
+      ) : (
+        <ScoredMovieGrid items={similarQuery.data} />
+      )}
+    </Stack>
+  );
+}
+
 function UnknownMovie() {
   return (
     <Alert color="gray" variant="light" title="We do not have that film">
@@ -209,7 +238,12 @@ export function MovieDetailPage() {
         </Alert>
       ) : null}
 
-      {movieQuery.isSuccess ? <MovieDetail movie={movieQuery.data} /> : null}
+      {movieQuery.isSuccess ? (
+        <>
+          <MovieDetail movie={movieQuery.data} />
+          <MoreLikeThis id={movieQuery.data.id} />
+        </>
+      ) : null}
     </Stack>
   );
 }

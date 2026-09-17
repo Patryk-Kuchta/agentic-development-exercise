@@ -28,6 +28,11 @@ export function Layout() {
                 Favourites
               </Anchor>
             )}
+            {user === undefined ? null : (
+              <Anchor component={Link} to="/suggestions" size="sm" c="dimmed">
+                Suggestions
+              </Anchor>
+            )}
           </Group>
 
           <Group gap="sm">
