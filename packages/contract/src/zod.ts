@@ -1,6 +1,6 @@
 import { createSelectSchema } from 'drizzle-orm/zod';
 import { z } from 'zod';
-import { movies, users } from './schema';
+import { favourites, movies, users } from './schema';
 
 /**
  * Drizzle maps a `mode: 'json'` column to "anything at all", because JSON is
@@ -19,31 +19,54 @@ const arrayColumns = {
   languages: stringArray,
 };
 
-/** A movie as the API returns it: every column except the 6 KiB vector. */
-export const movieSchema = createSelectSchema(movies, arrayColumns).omit({
+/** A movie as it sits in the table: every column except the 6 KiB vector. */
+const movieRowSchema = createSelectSchema(movies, arrayColumns).omit({
   plotEmbedding: true,
 });
+
+/**
+ * Whether the caller has favourited this film.
+ *
+ * Computed per request, never stored on the movie — the same row is favourited
+ * by one person and not by another, so it is not a property of the film. An
+ * anonymous caller gets `false` rather than an error.
+ */
+const viewerFields = { isFavourite: z.boolean() };
+
+/** A movie as the API returns it: the row, plus one per-caller fact. */
+export const movieSchema = movieRowSchema.extend(viewerFields);
 
 export type Movie = z.infer<typeof movieSchema>;
 
 /**
- * What a card in the list needs, and nothing more. Picked from `movieSchema`
+ * What a card in the list needs, and nothing more. Picked from the row schema
  * rather than declared, so a column that changes type upstream changes here
  * too — and so `fullplot`, `writers` and the rest are not sent 24 at a time.
  */
-export const movieSummarySchema = movieSchema.pick({
-  id: true,
-  title: true,
-  poster: true,
-  genres: true,
-  imdbRating: true,
-  runtime: true,
-  type: true,
-  rated: true,
-  plot: true,
-});
+export const movieSummarySchema = movieRowSchema
+  .pick({
+    id: true,
+    title: true,
+    poster: true,
+    genres: true,
+    imdbRating: true,
+    runtime: true,
+    type: true,
+    rated: true,
+    plot: true,
+  })
+  .extend(viewerFields);
 
 export type MovieSummary = z.infer<typeof movieSummarySchema>;
+
+/**
+ * The answer to "is this film now one of mine?", which is all a heart needs
+ * back from a toggle. The owner is whoever is signed in, so `userId` is not
+ * echoed back to the person who just sent it.
+ */
+export const favouriteSchema = createSelectSchema(favourites)
+  .pick({ movieId: true })
+  .extend(viewerFields);
 
 /** What a row looks like on the way in. Drizzle types the insert itself. */
 export type MovieDraft = typeof movies.$inferInsert;
