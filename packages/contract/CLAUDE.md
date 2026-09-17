@@ -51,3 +51,8 @@ instead of trusting a cast.
 
 `movieSchema` is exported and, on `main`, unused. That is not dead code — Exercise 1 is
 supposed to consume it. Leave it.
+
+The same goes for the `users` and `favourites` tables. They are declared, migrated and
+exported, and nothing reads them until Exercise 2 — which is the point: that exercise is
+about accounts, not about drizzle-kit, so the schema work is already done for the learner.
+Sessions are deliberately absent, and belong in memory in the API process.
