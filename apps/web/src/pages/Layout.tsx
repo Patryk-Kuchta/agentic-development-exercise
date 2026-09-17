@@ -15,9 +15,20 @@ export function Layout() {
     <>
       <Container size="xl" py="sm">
         <Group justify="space-between">
-          <Anchor component={Link} to="/" fw={700} underline="never">
-            Movie Suggester
-          </Anchor>
+          <Group gap="lg">
+            <Anchor component={Link} to="/" fw={700} underline="never">
+              Movie Suggester
+            </Anchor>
+            <Anchor component={Link} to="/movies" size="sm" c="dimmed">
+              Movies
+            </Anchor>
+            {/* Only worth offering to somebody who can have favourites. */}
+            {user === undefined ? null : (
+              <Anchor component={Link} to="/favourites" size="sm" c="dimmed">
+                Favourites
+              </Anchor>
+            )}
+          </Group>
 
           <Group gap="sm">
             {/* Three states, not two: on a reload with a stored token we do not
