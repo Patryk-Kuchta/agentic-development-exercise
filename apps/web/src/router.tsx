@@ -8,6 +8,7 @@ import { MoviesPage } from './pages/MoviesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SignInPage } from './pages/SignInPage';
 import { SignUpPage } from './pages/SignUpPage';
+import { SuggestionsPage } from './pages/SuggestionsPage';
 
 /* React Router 8 data mode: route objects take `Component` (a component type),
    not `element` (a rendered node). `*` is the catch-all.
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       { path: '/movies', Component: MoviesPage },
       { path: '/movies/:id', Component: MovieDetailPage },
       { path: '/favourites', Component: FavouritesPage },
+      { path: '/suggestions', Component: SuggestionsPage },
       { path: '/sign-in', Component: SignInPage },
       { path: '/sign-up', Component: SignUpPage },
       { path: '*', Component: NotFoundPage },
