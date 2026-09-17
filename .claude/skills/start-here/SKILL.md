@@ -39,7 +39,9 @@ drizzle migration throws at boot. If migrations explode, you skipped `nvm use`.
 | `apps/api`          | Express 5 + oRPC, Drizzle over `node:sqlite`, vitest                   |
 | `apps/web`          | Vite + React 19 + Mantine 9 + TanStack Query 5 + react-router          |
 
-New to JS/TS from C#? Read `js-for-csharp-devs`, then `frontend-for-csharp-devs`.
+New to TypeScript or React? Read `learn-this-stack` — it translates the stack from
+whatever you already write. Coming from C#/.NET or Blazor, `js-for-csharp-devs` and
+`frontend-for-csharp-devs` are the long versions.
 
 ## The exercises
 
@@ -49,7 +51,7 @@ New to JS/TS from C#? Read `js-for-csharp-devs`, then `frontend-for-csharp-devs`
 | 2   | Sign-up/sign-in, favourites, favourites page and filter       | `exercise-2-example-solution` |
 | 3   | Embedding similarity: "more like this" + personal suggestions | `exercise-3-example-solution` |
 
-Briefs live in `exercises/EXERCISE-{1,2,3}.md`. Each is solvable without reading
+Briefs live in [README.md](../../../README.md#the-exercises). Each is solvable without reading
 its branch. Read the brief, not the solution, first.
 
 ## Done means one thing

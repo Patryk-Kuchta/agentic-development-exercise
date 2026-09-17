@@ -17,11 +17,14 @@ It is also a **teaching repo**. `main` deliberately ships only the foundation â€
 the dataset ingest, a health/stats API and a landing page. Three exercises build the rest,
 each with a worked answer on its own branch:
 
-| Exercise                     | Builds                               | Example solution branch       |
-| ---------------------------- | ------------------------------------ | ----------------------------- |
-| [1](exercises/EXERCISE-1.md) | Paginated movie list + detail page   | `exercise-1-example-solution` |
-| [2](exercises/EXERCISE-2.md) | Accounts and favourites              | `exercise-2-example-solution` |
-| [3](exercises/EXERCISE-3.md) | Suggestions from the plot embeddings | `exercise-3-example-solution` |
+| Exercise                                                   | Builds                                        | Example solution branch       |
+| ---------------------------------------------------------- | --------------------------------------------- | ----------------------------- |
+| [1](README.md#exercise-1--browse-the-movies)               | Paginated movie list + detail page            | `exercise-1-example-solution` |
+| [2](README.md#exercise-2--favourites)                      | Favourites, on top of the accounts main ships | `exercise-2-example-solution` |
+| [3](README.md#exercise-3--suggestions-from-the-embeddings) | Suggestions from the plot embeddings          | `exercise-3-example-solution` |
+
+After those, the stretch goals in [README.md](README.md#the-stretch-goals) are a long list of
+small, self-contained extras. No example solutions â€” nobody has built them.
 
 If you are an agent asked to "do exercise N", build it on a branch off the previous one;
 do not copy the example solution.
@@ -171,11 +174,12 @@ Agents that do not load `.claude/skills/` automatically should read these direct
 
 Learning the stack rather than shipping to it:
 
-| Skill                                                                          | Read it when                               |
-| ------------------------------------------------------------------------------ | ------------------------------------------ |
-| [`start-here`](.claude/skills/start-here/SKILL.md)                             | First contact with this repo               |
-| [`js-for-csharp-devs`](.claude/skills/js-for-csharp-devs/SKILL.md)             | Coming from C#/.NET to TypeScript          |
-| [`frontend-for-csharp-devs`](.claude/skills/frontend-for-csharp-devs/SKILL.md) | Coming from Blazor/Razor to React          |
-| [`self-review`](.claude/skills/self-review/SKILL.md)                           | Before calling any change done             |
-| [`ingest-data`](.claude/skills/ingest-data/SKILL.md)                           | Operating or re-running the dataset ingest |
-| [`debug-this-stack`](.claude/skills/debug-this-stack/SKILL.md)                 | Something broke and you want the fix       |
+| Skill                                                                          | Read it when                                  |
+| ------------------------------------------------------------------------------ | --------------------------------------------- |
+| [`start-here`](.claude/skills/start-here/SKILL.md)                             | First contact with this repo                  |
+| [`learn-this-stack`](.claude/skills/learn-this-stack/SKILL.md)                 | New to TypeScript or React, from any language |
+| [`js-for-csharp-devs`](.claude/skills/js-for-csharp-devs/SKILL.md)             | Coming from C#/.NET to TypeScript             |
+| [`frontend-for-csharp-devs`](.claude/skills/frontend-for-csharp-devs/SKILL.md) | Coming from Blazor/Razor to React             |
+| [`self-review`](.claude/skills/self-review/SKILL.md)                           | Before calling any change done                |
+| [`ingest-data`](.claude/skills/ingest-data/SKILL.md)                           | Operating or re-running the dataset ingest    |
+| [`debug-this-stack`](.claude/skills/debug-this-stack/SKILL.md)                 | Something broke and you want the fix          |
