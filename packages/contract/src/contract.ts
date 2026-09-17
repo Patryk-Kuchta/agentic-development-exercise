@@ -1,6 +1,13 @@
 import { oc } from '@orpc/contract';
 import { z } from 'zod';
-import { sessionSchema, signInSchema, signUpSchema, userSchema } from './zod';
+import {
+  movieSchema,
+  movieSummarySchema,
+  sessionSchema,
+  signInSchema,
+  signUpSchema,
+  userSchema,
+} from './zod';
 
 /**
  * The HTTP surface, built from the Zod schemas which were themselves built
@@ -9,10 +16,39 @@ import { sessionSchema, signInSchema, signUpSchema, userSchema } from './zod';
  *
  * Paths here are relative — the Express app mounts the whole contract under
  * `/api`, so `/stats` is served at `/api/stats`.
- *
- * Exercise 1 adds the movie routes. `movieSchema` in `zod.ts` is already
- * waiting for them.
  */
+
+/** Path parameters arrive as strings, so the id is coerced before it is checked. */
+const movieParams = z.object({ id: z.coerce.number().int().positive() });
+
+/**
+ * A closed set of sort orders. An open string would let a caller name a column
+ * and turn the query builder into an injection surface.
+ */
+export const movieSortSchema = z.enum(['rating', 'title']);
+
+/**
+ * Query strings are strings, so every number is coerced. The `max` on
+ * `pageSize` is the point of the whole schema: without it a caller asks for
+ * a hundred thousand rows and the server obliges.
+ */
+const movieListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(60).default(24),
+  search: z.string().trim().min(1).max(100).optional(),
+  genre: z.string().trim().min(1).max(50).optional(),
+  sort: movieSortSchema.default('rating'),
+});
+
+/** One page of results, plus what a pager needs to draw itself. */
+const moviePageSchema = z.object({
+  items: z.array(movieSummarySchema),
+  page: z.number().int(),
+  pageSize: z.number().int(),
+  total: z.number().int(),
+  totalPages: z.number().int(),
+});
+
 export const contract = {
   health: oc
     .route({ method: 'GET', path: '/health' })
@@ -61,5 +97,22 @@ export const contract = {
       /* Succeeds even when the caller was not signed in: signing out asks for a
          state, not a transition, and the state is reached either way. */
       .output(z.object({ signedOut: z.literal(true) })),
+  },
+
+  movies: {
+    list: oc
+      .route({ method: 'GET', path: '/movies' })
+      .input(movieListQuerySchema)
+      .output(moviePageSchema),
+
+    /* Declared before `get` on purpose: `/movies/genres` would otherwise be a
+       candidate for `/movies/{id}`, and "genres" is not a number. */
+    genres: oc.route({ method: 'GET', path: '/movies/genres' }).output(z.array(z.string())),
+
+    get: oc
+      .route({ method: 'GET', path: '/movies/{id}' })
+      .input(movieParams)
+      .output(movieSchema)
+      .errors({ NOT_FOUND: {} }),
   },
 };
