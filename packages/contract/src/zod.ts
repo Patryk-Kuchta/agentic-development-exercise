@@ -1,18 +1,30 @@
-import { createInsertSchema, createSelectSchema } from 'drizzle-orm/zod';
-import type { z } from 'zod';
-import { tasks } from './schema';
+import { createSelectSchema } from 'drizzle-orm/zod';
+import { z } from 'zod';
+import { movies } from './schema';
 
-/** A task exactly as it is stored and returned. Derived from the table. */
-export const taskSchema = createSelectSchema(tasks);
+/**
+ * Drizzle maps a `mode: 'json'` column to "anything at all", because JSON is
+ * anything at all — `createSelectSchema(movies).shape.genres` happily accepts
+ * `[1, 2, 3]`. Naming the element type here is a refinement of the derived
+ * schema, not a second declaration of the column. See the change-schema skill.
+ */
+const stringArray = z.array(z.string());
 
-/** What a client may send to create a task. `id`, `done` and `createdAt` are server-owned. */
-export const taskDraftSchema = createInsertSchema(tasks, {
-  title: (schema) => schema.trim().min(1, 'Title is required').max(200),
-}).omit({ id: true, done: true, createdAt: true });
+const arrayColumns = {
+  genres: stringArray,
+  castMembers: stringArray,
+  directors: stringArray,
+  writers: stringArray,
+  countries: stringArray,
+  languages: stringArray,
+};
 
-/** A partial update. Only the fields a client is allowed to change. */
-export const taskPatchSchema = taskSchema.pick({ title: true, done: true }).partial();
+/** A movie as the API returns it: every column except the 6 KiB vector. */
+export const movieSchema = createSelectSchema(movies, arrayColumns).omit({
+  plotEmbedding: true,
+});
 
-export type Task = z.infer<typeof taskSchema>;
-export type TaskDraft = z.infer<typeof taskDraftSchema>;
-export type TaskPatch = z.infer<typeof taskPatchSchema>;
+export type Movie = z.infer<typeof movieSchema>;
+
+/** What a row looks like on the way in. Drizzle types the insert itself. */
+export type MovieDraft = typeof movies.$inferInsert;

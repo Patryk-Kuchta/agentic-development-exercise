@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@orpc/contract": "^1.15.1",
     "drizzle-orm": "1.0.0-rc.4",
     "zod": "^4.6.5"
   }
