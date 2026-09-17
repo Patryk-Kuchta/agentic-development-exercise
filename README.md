@@ -1,69 +1,125 @@
 # Movie Suggester
 
-Build a film recommender over 1455 movies, with an AI coding agent as your pair.
+Build a film recommender over 1455 films, with an AI coding agent as your pair.
 
 ## Setup
 
-**1. Install nvm** — it handles Node versions for you.
+You need **Node 24** (pinned in `.nvmrc`) and the npm that ships with it.
 
-- macOS / Linux: [nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-- Windows: [nvm-windows](https://github.com/coreybutler/nvm-windows#installation--upgrades)
+nvm is the easiest way to get it:
 
-**2. Get the right Node.** This repo needs Node 24, pinned in `.nvmrc`.
+- **Linux, macOS, or WSL on Windows** —
+  [nvm](https://github.com/nvm-sh/nvm#installing-and-updating), then `nvm install && nvm use`.
+  It reads `.nvmrc`.
+- **Native Windows** — there is no official nvm for Windows; `nvm-sh/nvm` does not support it.
+  Use [nvm-windows](https://github.com/coreybutler/nvm-windows#installation--upgrades), the
+  separate project nvm's own README points to. It ignores `.nvmrc`, so
+  `nvm install 24 && nvm use 24`.
 
-```sh
-nvm install        # reads .nvmrc and installs it
-nvm use
-```
+nvm is optional — skip it if you already manage Node another way. Just make sure `node -v`
+says v24 and `npm -v` is modern. Those two things are all that matters.
 
-On Windows, nvm-windows ignores `.nvmrc` — use `nvm install 24` then `nvm use 24`.
-
-**3. Run it.**
+Then:
 
 ```sh
 npm install
 npm run dev
 ```
 
-Open <http://localhost:5173>. The API downloads the dataset on first start, so the
-movie count fills in after a few seconds.
+Open <http://localhost:5173>. The API downloads the dataset on first start, so the film count
+fills in after a few seconds.
 
-If anything fails, the error tells you what to do. `npm run check` is the one command
-that says whether your work is finished.
+Node 23 or below fails every migration with `stmt.setReturnArrays is not a function`. That
+error means the wrong Node and nothing else.
 
-## What's here already
+## What you start with
 
-- **1455 films** from the [`MongoDB/embedded_movies`](https://huggingface.co/datasets/MongoDB/embedded_movies)
-  dataset — plots, cast, genres, ratings, posters.
-- **A plot embedding per film**: 1536 numbers describing what it is _about_. Exercise 3 uses these.
-- **One place a field is declared** — `packages/contract/src/schema.ts`. The database migration,
-  the validation, the API types and the React hooks are all generated from it.
-- **A working vertical slice**: SQLite → Express API → React page, so you have a pattern to copy.
-- **A landing page** that counts what was ingested. That is the whole UI so far.
-- **No infrastructure.** No Docker, no database server, no API keys. Just npm.
+- **1455 films** from
+  [`MongoDB/embedded_movies`](https://huggingface.co/datasets/MongoDB/embedded_movies) — plots,
+  cast, genres, ratings, posters, and a 1536-float `plot_embedding` for all but 27 of them.
+- **Three workspaces**: `packages/contract` (the source of truth), `apps/api` (Express + oRPC +
+  Drizzle over `node:sqlite`), `apps/web` (Vite + React 19 + Mantine + TanStack Query).
+- **A working vertical slice** — SQLite → API → React — plus accounts and an empty
+  `favourites` table. The landing page counting the ingest is the whole UI so far.
+- **No infrastructure.** No Docker, no database server, no API keys.
 
-Three workspaces: `packages/contract` (the source of truth), `apps/api`, `apps/web`.
+## Your branch
+
+Your trainer will tell you which branch to start on.
+
+```sh
+git checkout <branch>
+```
+
+| Branch                | Start here for | Adds                                          |
+| --------------------- | -------------- | --------------------------------------------- |
+| `main`                | Exercise 1     | The app. No linting, no tests, no agent rules |
+| `exercise-1-solution` | —              | A worked answer to exercise 1                 |
+| `exercise-2-setup`    | Exercise 2     | `npm run check` and the written house rules   |
+| `exercise-2-solution` | —              | A worked answer to exercise 2                 |
+| `exercise-3-setup`    | Exercise 3     | The skills, subagents and hooks in `.claude/` |
+| `exercise-3-solution` | —              | A worked answer to exercise 3                 |
+
+Each branch is built on the one above it, so later branches carry everything the earlier ones
+do. They all share one `package-lock.json`, so `npm install` once covers every branch — run it
+again after a checkout anyway, which is harmless and installs the git hook the gate branches
+add.
+
+A fresh clone is already on `main`, so exercise 1 needs no checkout.
+
+The solution branches are worked answers. Read one after you have built your own, not instead
+of it. Want to keep your own work as you move up the stack? See **Advanced** below.
+
+<details>
+<summary>Moving between branches</summary>
+
+Work on your own branch, so a checkout never threatens your code:
+
+```sh
+git switch -c my-exercise-1     # before you start
+```
+
+Commit or stash before you switch, or git will refuse:
+
+```sh
+git stash                       # always works
+git checkout exercise-2-setup
+npm install                     # harmless, and installs the git hook
+```
+
+Committing instead of stashing is fine, but from `exercise-2-setup` on the pre-commit hook
+lints what you staged, so `git commit -am "wip"` can be refused by the very lint errors you
+were trying to park. `git stash`, or `git commit --no-verify`, never is.
+
+Back to the start, or to see what is on offer:
+
+```sh
+git checkout main
+git branch -a
+```
+
+To push your own work, fork the repo on GitHub first and push to your fork.
+
+</details>
 
 ## The exercises
 
-Do them in order — each builds on the last. Each has a worked answer on its own branch;
-build it yourself first, on a branch off the previous one.
+Do them in order — each builds on the last. Three rules apply throughout:
 
-Three rules apply to all three:
-
-1. **Derive, never duplicate.** Work in the order in `.claude/skills/add-feature/SKILL.md`:
-   schema → migration → `zod.ts` → `contract.ts` → handler → API test → web. Never
-   hand-write a type, a Zod schema, a migration or a `fetch` — each step generates the next.
+1. **Derive, never duplicate.** A field is declared once, in
+   `packages/contract/src/schema.ts`. Work in that direction: schema → migration → `zod.ts` →
+   `contract.ts` → handler → web. Never hand-write a type, a Zod schema, a migration or a
+   `fetch`.
 2. **Reshape, don't redeclare** — `.pick()`, `.omit()` and `.extend()` on a derived schema.
-3. **A route is not done without a test that calls it through the client**, and
-   `npm run check` must be green.
+3. **npm only.** No Docker, no database server, no API keys, no native builds. Any pure-JS npm
+   package is fine.
 
 ### Exercise 1 — Browse the movies
 
-`exercise-1-example-solution` · a couple of hours · all three workspaces
+Start on `main` · answer on `exercise-1-solution` · a couple of hours
 
 1455 films are in SQLite and nobody can look at one. Build a paginated list and a page per
-film. Ignore `plot_embedding` entirely — that is exercise 3's.
+film. Ignore `plot_embedding` — that is exercise 3's.
 
 - `GET /api/movies` — one page, not the whole table. `page` and `pageSize` with defaults and
   **bounds** (`pageSize=100000` must be refused), plus the total so a pager can draw itself.
@@ -71,38 +127,46 @@ film. Ignore `plot_embedding` entirely — that is exercise 3's.
 - `GET /api/movies/{id}` — one film, and a declared 404 when the id is unknown.
 - Title search, genre filter, sort by IMDb rating. Neither endpoint ever returns
   `plotEmbedding`.
-- A card grid with working pagination, and a detail page with plot, cast, crew and awards.
-- **Search, filter, sort and page live in the URL**, so page 7 of "Comedy by rating" is a
-  link someone else can open. Loading, error and empty states each render something deliberate.
+- A card grid with working pagination; a detail page with plot, cast, crew and awards.
+- **Search, filter, sort and page live in the URL**, so page 7 of "Comedy by rating" is a link
+  someone else can open. Loading, error and empty states each render something deliberate.
 
 Genres are a JSON column, so "has genre X" is not a plain `=` — look at SQLite's JSON
-functions. The genre dropdown needs its own small endpoint. Mantine already has
-`Pagination`, `Card`, `SimpleGrid` and `Select`.
+functions. The genre dropdown needs its own small endpoint. Mantine already has `Pagination`,
+`Card`, `SimpleGrid` and `Select`.
+
+`main` has no linter, no test runner and no instructions for the agent. That is deliberate:
+this one is you and the agent with no guardrails, and your judgement is the only check.
 
 **Done when** you can search "alien", sort by rating, land on page 2, click a film and read
 about it.
 
 ### Exercise 2 — Favourites
 
-`exercise-2-example-solution` · half a day · builds on exercise 1
+Start on `exercise-2-setup` · answer on `exercise-2-solution` · half a day
 
-**Accounts already work.** `main` ships sign-up, sign-in, sign-out and a header — read
+This branch adds the gate. `npm run check` — types, lint, format, tests, `db:check`, build — is
+now the single definition of done, and `AGENTS.md` plus the per-workspace `CLAUDE.md` files are
+the house rules in writing, for you and the agent both. **A route is not done without a test
+that calls it through the client.**
+
+**Accounts already work** — sign-up, sign-in, sign-out and a header. Read
 `apps/api/src/accounts.ts` first. Sessions are a `Map` in the API process, not a table, so
-**restarting the API signs everyone out**. That is deliberate: who is signed in is a fact
-about a running process, and a teaching app may lose it.
+**restarting the API signs everyone out**. That is deliberate: who is signed in is a fact about
+a running process, and a teaching app may lose it.
 
-**The `favourites` table already exists too** — `userId` + `movieId` as a composite primary
-key, cascading foreign keys, migration committed. It is empty, and wiring it up is the
-exercise. You should not need `npm run db:generate` at all.
+**The `favourites` table already exists** — `userId` + `movieId` as a composite primary key,
+cascading foreign keys, migration committed. It is empty, and wiring it up is the exercise. You
+should not need `npm run db:generate` at all.
 
-- Add and remove a favourite. Favouriting a film that does not exist is a 404; doing it
-  while signed out is a 401.
-- The composite key makes a duplicate impossible in the database, and
-  `onConflictDoNothing()` turns a double-clicked heart into "already done" rather than a 500.
-- Every movie in a list says whether the caller has favourited it, and the list gains a
+- Add and remove a favourite. Favouriting a film that does not exist is a 404; doing it while
+  signed out is a 401.
+- The composite key makes a duplicate impossible in the database, and `onConflictDoNothing()`
+  turns a double-clicked heart into "already done" rather than a 500.
+- Every film in a list says whether the caller has favourited it, and the list gains a
   "favourites only" filter. **Anonymous callers get `false`, not an error.**
-- `isFavourite` is computed per request, never stored on the movie — an `.extend()` on the
-  derived schema. Think about what it costs on a page of 24 cards: one query, not 24.
+- `isFavourite` is computed per request, never stored on the film — an `.extend()` on the
+  derived schema. On a page of 24 cards that is one query, not 24.
 - A heart on every card and on the detail page, a favourites page, and a toggle on the list.
   After a mutation, `invalidateQueries` — a `useState` mirror of the server is two truths.
 
@@ -111,27 +175,30 @@ theirs, sign back in and find all three — as long as you have not restarted th
 
 ### Exercise 3 — Suggestions from the embeddings
 
-`exercise-3-example-solution` · half a day · the most open-ended
+Start on `exercise-3-setup` · answer on `exercise-3-solution` · half a day
+
+This branch adds `.claude/` — skills, subagents and hooks. Use them; this is the exercise where
+you drive the agent rather than type.
 
 Every film carries `plot_embedding`: 1536 floats encoding what its plot is _about_. Similar
 plots point in similar directions, and that is **cosine similarity** —
 `dot(a, b) / (magnitude(a) * magnitude(b))`. About ten lines. Nothing to install.
 
-- "More like this" on the detail page: the N closest films. A film is never similar to
-  itself, and one with no embedding gives an honest empty result rather than a crash.
-- A suggestions page from the signed-in user's favourites: build one taste vector, suggest
-  the closest films they have **not** favourited, and say which favourite each came from —
-  "because you liked _Alien_". No favourites yet gets "favourite something first".
+- "More like this" on the detail page: the N closest films. A film is never similar to itself,
+  and one with no embedding gives an honest empty result rather than a crash.
+- A suggestions page from the signed-in user's favourites: build one taste vector, suggest the
+  closest films they have **not** favourited, and say which favourite each came from — "because
+  you liked _Alien_". No favourites yet gets "favourite something first".
 - Return the scores and show them, so the result is inspectable rather than magic.
 
 **No vector database, no API key, no new service.** 1455 vectors is ~9 MB, so scanning all of
 them is milliseconds. Decode each **once**, not once per comparison. Do not assume unit
-length — divide by the magnitudes, or normalise up front and say so in a comment. Watch for a
-zero-magnitude vector: dividing by it gives `NaN`, and `NaN` sorts in a way that will cost
-you an hour. Decode with a `Float32Array` view and narrow with `instanceof Uint8Array`;
-reaching for `as` means you took a wrong turn. **Embeddings never go to the browser.**
+length — divide by the magnitudes, or normalise up front and say so in a comment. A
+zero-magnitude vector divides to `NaN`, and `NaN` sorts in a way that will cost you an hour.
+Decode with a `Float32Array` view and narrow with `instanceof Uint8Array`; reaching for `as`
+means you took a wrong turn. **Embeddings never go to the browser.**
 
-28 of the 1455 films have no embedding. That is not a bug to fix, it is a case to handle.
+27 of the 1455 films have no embedding. Not a bug to fix — a case to handle.
 
 Test that similarity gives 1 for identical vectors and 0 for orthogonal ones, that a film is
 not its own suggestion, that one without an embedding is excluded, and that empty favourites
@@ -140,19 +207,50 @@ give an empty list.
 **Done when** any film shows plausible neighbours, and three favourites produce a sensible
 suggestion that names the favourite it came from.
 
-Finished all three? **[Stretch goals](#the-stretch-goals)** — thirty-odd small, fun
-extras, an hour to an afternoon each. No answer branches; you are on your own, which is the
-point. Same rules: derive, never duplicate; npm only; `npm run check` green.
+<details>
+<summary><b>Advanced</b> — carry your own solution forward</summary>
+
+`exercise-2-setup` contains the _example_ answer to exercise 1, so checking it out replaces
+your work with somebody else's. To keep your own and still get the tooling, cherry-pick the
+setup commits onto your own branch instead:
+
+```sh
+git checkout my-exercise-1
+git cherry-pick exercise-1-solution..exercise-2-setup^
+npm install
+```
+
+The `^` drops the last commit, which is tests written against the example solution rather than
+against yours. For exercise 3 nothing needs dropping:
+
+```sh
+git checkout my-exercise-2
+git cherry-pick exercise-2-solution..exercise-3-setup
+```
+
+`npm run check` is now the definition of done, and it is seeing your exercise 1 for the first
+time — expect lint complaints, and your own routes still have no tests. Clearing that is the
+first half of exercise 2.
+
+Hand the whole job to Claude: the cherry-pick, the conflicts and the failures. It is exactly
+the kind of work it is good at, and doing it that way is recommended.
+
+</details>
+
+## The stretch goals
+
+Finished all three? Thirty-odd small extras, an hour to an afternoon each. No answer branches;
+you are on your own, which is the point. Same three rules.
 
 <details>
-<summary><b>The stretch goals</b> — pick one you would actually use</summary>
+<summary>Pick one you would actually use</summary>
 
 **Games**
 
 - **Higher or lower** — two posters, guess which IMDb rates higher. The design problem is
   picking a fair pair.
-- **Guess the plot** — a plot with the title and cast redacted. Redaction leaks the answer
-  in more ways than you expect.
+- **Guess the plot** — a plot with the title and cast redacted. Redaction leaks the answer in
+  more ways than you expect.
 - **Odd one out** — three films close in embedding space, one from far away.
 - **Six degrees** — connect two actors through shared casts, and show the chain.
 - **Film of the day** — one film for everybody, seeded by the date, so a test can assert it.
@@ -180,9 +278,9 @@ point. Same rules: derive, never duplicate; npm only; `npm run check` green.
 **Craft**
 
 - **Command palette** (ctrl-K), **poster fallbacks** for the dead URLs, **dark mode**,
-  **shareable top five** in the URL, **favourites export/import**, **published API docs**,
-  **a terminal client** over the same typed client, **keyboard navigation**, **an
-  accessibility pass**, **skeletons instead of spinners**.
+  **shareable top five** in the URL, **favourites export/import**, **published API docs**, **a
+  terminal client** over the same typed client, **keyboard navigation**, **an accessibility
+  pass**, **skeletons instead of spinners**.
 
 **Under the hood**
 
@@ -190,67 +288,54 @@ point. Same rules: derive, never duplicate; npm only; `npm run check` green.
 - **Make ingest legible** — progress, a summary, and no redone work.
 - **A fixture database** so tests can assert _which_ neighbour comes back.
 - **Measure the scan** at 1455 vectors, then at 150,000.
-- **Break rule 2, deliberately** — free-text search with a real embedding model, optional
-  and honest about it.
+- **Break rule 2, deliberately** — free-text search with a real embedding model, optional and
+  honest about it.
 
 </details>
 
+## Working with the agent
+
+Each exercise levels up **how** you use the agent, not just what you build. Same tool, three
+ways of working — and this, not the app, is the point.
+
 <details>
-<summary><b>How to work with the AI on each one</b> — the real point of the exercise</summary>
+<summary>The three ways</summary>
 
-Each exercise deliberately levels up **how** you use the agent, not just what you build.
-Same tool, three ways of working.
+**Exercise 1 — ask, plan, review.** No gate and no instructions file, so your judgement is the
+only check. You are still the one typing most of the code.
 
-### Exercise 1 — Ask, plan, review
-
-Keep it conversational and hands-on. You are still the one typing most of the code.
-
-- **Ask before you build.** "How does the contract turn into a React hook?" "Why does this
-  type error?" Use it to understand the codebase, not to skip it.
-- **Plan first.** Before any code, get it to write the plan: which files, in which order,
-  and why. Push back on the plan. A bad plan is cheap to fix; bad code is not.
+- **Ask before you build.** "How does the contract turn into a React hook?" Use it to
+  understand the codebase, not to skip it.
+- **Plan first**, and push back on the plan. A bad plan is cheap to fix; bad code is not.
 - **Take small snippets**, not whole features. Paste, read, understand, keep.
-- **Review everything it gives you, and ask why.** "Why this and not that?" "What breaks if
-  the list is empty?" If it cannot justify a line, do not keep the line.
+- **Ask why.** If it cannot justify a line, do not keep the line.
 
-Do not bother with skills or automation yet. Goal: judgement.
+**Exercise 2 — close the loop.** The gate exists now, so let the agent run it and review
+outcomes instead of characters.
 
-### Exercise 2 — Close the loop
-
-Now let it check its own work, so you review outcomes instead of characters.
-
-- **Let it run the tools**: `npm test`, `npm run lint`, `npm run check`. It should iterate
-  until green without you relaying error messages.
+- **Let it run `npm run check`** and iterate until green without you relaying error messages.
 - **Ask for the test first**, then the code that passes it.
-- **Review faster and higher up**: read the diff, not every line. Look for the things tests
-  cannot catch — a duplicated type, a swallowed error, a hand-written `fetch`.
-- **Make it prove things.** "Show me the failing test before you fix it."
+- **Read the diff, not every line.** Look for what tests cannot catch: a duplicated type, a
+  swallowed error, a hand-written `fetch`.
 
-Goal: a tight feedback loop where the gate does the checking.
+**Exercise 3 — drive it.** The problem is open-ended, so the work is mostly deciding what to
+build — and the skills are on this branch.
 
-### Exercise 3 — Drive it properly
-
-The problem is open-ended, so the work is mostly deciding what to build.
-
-- **Brainstorm the design conversationally.** Argue about approaches before committing.
-  What makes a _good_ suggestion? How do you know it worked?
-- **Use the skills** in `.claude/skills/` — and write a prompt you would reuse.
+- **Brainstorm the design.** What makes a _good_ suggestion? How do you know it worked?
+- **Use the skills** in `.claude/skills/`, and write a prompt you would reuse.
 - **Hand it whole slices** and judge the result against the brief.
 - **Let it disagree with you**, and take the argument seriously.
-
-Goal: using it as a collaborator on an ambiguous problem.
 
 </details>
 
 ## Commands
 
-| Command          | Does                                                  |
-| ---------------- | ----------------------------------------------------- |
-| `npm run dev`    | API and web, both watching                            |
-| `npm run check`  | **The gate.** Types, lint, format, tests, build       |
-| `npm run ingest` | Re-download the dataset (`-- --limit=50` for a slice) |
+| Command             | Does                                                    |
+| ------------------- | ------------------------------------------------------- |
+| `npm run dev`       | API and web, both watching                              |
+| `npm run typecheck` | `tsc --noEmit` across the workspaces                    |
+| `npm run check`     | The gate: types, lint, format, tests, `db:check`, build |
+| `npm run ingest`    | Re-download the dataset (`-- --limit=50` for a slice)   |
 
-New to this stack? Start with the `start-here` skill in `.claude/skills/`. Then use
-`learn-this-stack`: tell the agent which language you normally write, point it at a file or
-ask it a question, and it explains this repo in those terms. Full detail for agents lives
-in [AGENTS.md](AGENTS.md).
+`npm run check` exists from `exercise-2-setup` onward — `main` has no gate. From that branch on,
+`AGENTS.md` and the per-workspace `CLAUDE.md` files carry the detail for agents.
