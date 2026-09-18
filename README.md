@@ -4,6 +4,13 @@ Build a film recommender over 1455 films, with an AI coding agent as your pair.
 
 ## Setup
 
+Clone the repo:
+
+```sh
+git clone https://github.com/Patryk-Kuchta/agentic-development-exercise.git
+cd agentic-development-exercise
+```
+
 You need **Node 24** (pinned in `.nvmrc`). Any way of getting it works — nvm is just the
 easiest:
 
@@ -53,9 +60,9 @@ git checkout <branch>
 | `exercise-3-setup`    | Exercise 3     | The skills, subagents and hooks in `.claude/` |
 | `exercise-3-solution` | —              | A worked answer to exercise 3                 |
 
-Each branch builds on the one above it, and they share one `package-lock.json` — so `npm
-install` after a checkout is harmless, and installs the git hook the gate branches add. A fresh
-clone is already on `main`, so exercise 1 needs no checkout.
+The branches stack, and they share one `package-lock.json` — so `npm install` after a checkout
+is harmless, and installs the git hook the gate branches add. A fresh clone is already on
+`main`, so exercise 1 needs no checkout.
 
 Read a solution branch after you have built your own, not instead of it. To carry your own work
 up the stack, see **Advanced** below.
@@ -94,32 +101,43 @@ To push your own work, fork the repo on GitHub first and push to your fork.
 
 ## The exercises
 
+Each one levels up **how** you use the agent, not just what you build — same tool, three ways
+of working, and that, not the app, is the point. Every exercise ends with the way of working it
+is asking for.
+
 ### Exercise 1 — Browse the movies
 
 Start on `main` · answer on `exercise-1-solution`
 
-1455 films are in SQLite and nobody can look at one. Build a paginated list and a page per
-film. Ignore `plot_embedding` — that is exercise 3's.
+1455 films are in SQLite and nobody can look at one. Build a list people can browse and a page
+per film.
 
-- `GET /api/movies` — one page, not the whole table. `page` and `pageSize` with defaults and
-  **bounds** (`pageSize=100000` must be refused), plus the total so a pager can draw itself.
-  `LIMIT`/`OFFSET` and a `COUNT` in SQL; reading everything then `.slice()` is the wrong answer.
-- `GET /api/movies/{id}` — one film, and a declared 404 when the id is unknown.
-- Title search, genre filter, sort by IMDb rating. Neither endpoint ever returns
-  `plotEmbedding`.
-- A card grid with working pagination; a detail page with plot, cast, crew and awards.
-- **Search, filter, sort and page live in the URL**, so page 7 of "Comedy by rating" is a link
-  someone else can open. Loading, error and empty states each render something deliberate.
-
-Genres are a JSON column, so "has genre X" is not a plain `=` — look at SQLite's JSON
-functions. The genre dropdown needs its own small endpoint. Mantine already has `Pagination`,
-`Card`, `SimpleGrid` and `Select`.
+- **A paginated list** — served a page at a time rather than the whole table, and refusing a
+  daft page size, with enough in the response for a pager to draw itself.
+- **A page per film**: plot, cast, crew, awards, and an honest 404 when the id is unknown.
+- **Search by title, filter by genre, sort by rating** — and all of it in the URL, so page 7 of
+  "Comedy by rating" is a link someone else can open.
+- **Loading, error and empty states** that each render something deliberate.
+- `plot_embedding` is exercise 3's, and never leaves the server.
 
 `main` has no linter, no test runner and no instructions for the agent. That is deliberate:
 this one is you and the agent with no guardrails, and your judgement is the only check.
 
 **Done when** you can search "alien", sort by rating, land on page 2, click a film and read
 about it.
+
+<details>
+<summary><b>Working with the agent</b> — ask, plan, review</summary>
+
+With nothing checking the agent's work but you, you are still the one typing most of the code.
+
+- **Ask before you build.** "How does the contract turn into a React hook?" Use it to
+  understand the codebase, not to skip it.
+- **Plan first**, and push back on the plan. A bad plan is cheap to fix; bad code is not.
+- **Take small snippets**, not whole features. Paste, read, understand, keep.
+- **Ask why.** If it cannot justify a line, do not keep the line.
+
+</details>
 
 ### Exercise 2 — Favourites
 
@@ -130,62 +148,75 @@ now the single definition of done, and `AGENTS.md` plus the per-workspace `CLAUD
 the house rules in writing, for you and the agent both. **A route is not done without a test
 that calls it through the client.**
 
-**Accounts already work** — sign-up, sign-in, sign-out and a header. Read
-`apps/api/src/accounts.ts` first. Sessions are a `Map` in the API process, not a table, so
+**Accounts already work** — sign-up, sign-in, sign-out and a header; start by reading
+`apps/api/src/accounts.ts`. Sessions live in the API process rather than the database, so
 **restarting the API signs everyone out**. That is deliberate: who is signed in is a fact about
 a running process, and a teaching app may lose it.
 
-**The `favourites` table already exists** — `userId` + `movieId` as a composite primary key,
-cascading foreign keys, migration committed. It is empty, and wiring it up is the exercise. You
-should not need `npm run db:generate` at all.
+**The `favourites` table already exists** — empty, migration committed. Wiring it up is the
+exercise; you should not need `npm run db:generate` at all.
 
-- Add and remove a favourite. Favouriting a film that does not exist is a 404; doing it while
-  signed out is a 401.
-- The composite key makes a duplicate impossible in the database, and `onConflictDoNothing()`
-  turns a double-clicked heart into "already done" rather than a 500.
-- Every film in a list says whether the caller has favourited it, and the list gains a
-  "favourites only" filter. **Anonymous callers get `false`, not an error.**
-- `isFavourite` is computed per request, never stored on the film — an `.extend()` on the
-  derived schema. On a page of 24 cards that is one query, not 24.
-- A heart on every card and on the detail page, a favourites page, and a toggle on the list.
-  After a mutation, `invalidateQueries` — a `useState` mirror of the server is two truths.
+- **Favourite and unfavourite a film.** Favouriting one that does not exist is a 404, doing it
+  signed out is a 401, and a double-clicked heart is not an error.
+- **Every film says whether you have favourited it**, and a list can be narrowed to just those.
+  Anonymous callers get an answer rather than an error — and a page of cards costs one query,
+  not one per card.
+- **Favouritedness is answered per request**, never stored on the film.
+- **A heart wherever a film appears**, a favourites page, and a UI that still agrees with the
+  server after every change.
 
 **Done when** you can favourite three films, sign out, sign in as somebody else, see none of
 theirs, sign back in and find all three — as long as you have not restarted the API.
 
-### Exercise 3 — Suggestions from the embeddings
+<details>
+<summary><b>Working with the agent</b> — close the loop</summary>
+
+The gate exists now, so let the agent run it and review outcomes instead of characters.
+
+- **Let it run `npm run check`** and iterate until green without you relaying error messages.
+- **Ask for the test first**, then the code that passes it.
+- **Read the diff, not every line.** Look for what tests cannot catch: a duplicated type, a
+  swallowed error, a hand-written `fetch`.
+
+</details>
+
+### Exercise 3 — Suggestions
 
 Start on `exercise-3-setup` · answer on `exercise-3-solution`
 
-This branch adds `.claude/` — skills, subagents and hooks. Use them; this is the exercise where
-you drive the agent rather than type.
+This branch, and only this branch, adds `.claude/` — the skills, subagents and hooks listed in
+**The skills** at the end. Use them; this is the exercise where you drive the agent rather than
+type.
 
-Every film carries `plot_embedding`: 1536 floats encoding what its plot is _about_. Similar
-plots point in similar directions, and that is **cosine similarity** —
-`dot(a, b) / (magnitude(a) * magnitude(b))`. About ten lines. Nothing to install.
+Every film carries a `plot_embedding` — a vector standing in for what its plot is about, so
+films with similar plots have similar vectors. What to do with that is the exercise.
 
-- "More like this" on the detail page: the N closest films. A film is never similar to itself,
-  and one with no embedding gives an honest empty result rather than a crash.
-- A suggestions page from the signed-in user's favourites: build one taste vector, suggest the
-  closest films they have **not** favourited, and say which favourite each came from — "because
-  you liked _Alien_". No favourites yet gets "favourite something first".
-- Return the scores and show them, so the result is inspectable rather than magic.
+- **"More like this"** on a film page, with the scores shown, so a suggestion is inspectable
+  rather than magic.
+- **Suggestions from your favourites** — films you have not already favourited, each one
+  attributed to the favourite that earned it: "because you liked _Alien_". No favourites yet
+  gets something better than an empty page.
+- **Honest edges.** Not every film has an embedding, and no film is its own suggestion.
+- **Fast, and server-side.** No vector database, no API key, no new service, and nothing that
+  sends embeddings to the browser.
 
-**No vector database, no API key, no new service.** 1455 vectors is ~9 MB, so scanning all of
-them is milliseconds. Decode each **once**, not once per comparison. Do not assume unit
-length — divide by the magnitudes, or normalise up front and say so in a comment. A
-zero-magnitude vector divides to `NaN`, and `NaN` sorts in a way that will catch you out.
-Decode with a `Float32Array` view and narrow with `instanceof Uint8Array`; reaching for `as`
-means you took a wrong turn. **Embeddings never go to the browser.**
-
-27 of the 1455 films have no embedding. Not a bug to fix — a case to handle.
-
-Test that similarity gives 1 for identical vectors and 0 for orthogonal ones, that a film is
-not its own suggestion, that one without an embedding is excluded, and that empty favourites
-give an empty list.
+Decide with the agent how similarity should work, what makes a suggestion a good one, and what
+tests would convince you the numbers are right rather than merely plausible.
 
 **Done when** any film shows plausible neighbours, and three favourites produce a sensible
 suggestion that names the favourite it came from.
+
+<details>
+<summary><b>Working with the agent</b> — drive it</summary>
+
+The problem is open-ended, so the work is mostly deciding what to build.
+
+- **Brainstorm the design.** What makes a _good_ suggestion? How do you know it worked?
+- **Use the skills** — by name, or let the agent pick — and write a prompt you would reuse.
+- **Hand it whole slices** and judge the result against the brief.
+- **Let it disagree with you**, and take the argument seriously.
+
+</details>
 
 <details>
 <summary><b>Advanced</b> — carry your own solution forward</summary>
@@ -219,8 +250,7 @@ work it is good at.
 
 ## The stretch goals
 
-Finished all three? Thirty-odd small extras. No answer branches; you are on your own, which
-is the point.
+Thirty-odd small extras. No answer branches; you are on your own, which is the point.
 
 <details>
 <summary>Pick one you would actually use</summary>
@@ -273,41 +303,6 @@ is the point.
 
 </details>
 
-## Working with the agent
-
-Each exercise levels up **how** you use the agent, not just what you build. Same tool, three
-ways of working — and this, not the app, is the point.
-
-<details>
-<summary>The three ways</summary>
-
-**Exercise 1 — ask, plan, review.** No gate and no instructions file, so your judgement is the
-only check. You are still the one typing most of the code.
-
-- **Ask before you build.** "How does the contract turn into a React hook?" Use it to
-  understand the codebase, not to skip it.
-- **Plan first**, and push back on the plan. A bad plan is cheap to fix; bad code is not.
-- **Take small snippets**, not whole features. Paste, read, understand, keep.
-- **Ask why.** If it cannot justify a line, do not keep the line.
-
-**Exercise 2 — close the loop.** The gate exists now, so let the agent run it and review
-outcomes instead of characters.
-
-- **Let it run `npm run check`** and iterate until green without you relaying error messages.
-- **Ask for the test first**, then the code that passes it.
-- **Read the diff, not every line.** Look for what tests cannot catch: a duplicated type, a
-  swallowed error, a hand-written `fetch`.
-
-**Exercise 3 — drive it.** The problem is open-ended, so the work is mostly deciding what to
-build — and the skills are on this branch.
-
-- **Brainstorm the design.** What makes a _good_ suggestion? How do you know it worked?
-- **Use the skills** in `.claude/skills/`, and write a prompt you would reuse.
-- **Hand it whole slices** and judge the result against the brief.
-- **Let it disagree with you**, and take the argument seriously.
-
-</details>
-
 ## Commands
 
 | Command             | Does                                                    |
@@ -317,5 +312,33 @@ build — and the skills are on this branch.
 | `npm run check`     | The gate: types, lint, format, tests, `db:check`, build |
 | `npm run ingest`    | Re-download the dataset (`-- --limit=50` for a slice)   |
 
-`npm run check` exists from `exercise-2-setup` onward — `main` has no gate. From that branch on,
-`AGENTS.md` and the per-workspace `CLAUDE.md` files carry the detail for agents.
+`npm run check` is exercise 2's: it arrives with `exercise-2-setup`, along with `lint`, `test`
+and the pre-commit hook. `main` has no gate. From that branch on, `AGENTS.md` and the
+per-workspace `CLAUDE.md` files carry the detail for agents.
+
+## The skills
+
+Exercise 3's, and nowhere else: `.claude/` arrives with `exercise-3-setup`. Invoke a skill by
+name, or let the agent pick.
+
+| Skill                  | For                                                             |
+| ---------------------- | --------------------------------------------------------------- |
+| `start-here`           | What the app is, how to run it, what the exercises ask          |
+| `learn-this-stack`     | The repo explained in a language you already write              |
+| `learn-the-frontend`   | React, Mantine and TanStack Query from whatever UI you know     |
+| `code-style`           | The naming, layout and conventions of this repo                 |
+| `add-feature`          | A new entity or route, contract → api → web                     |
+| `change-schema`        | A schema edit and the migration that belongs with it            |
+| `add-dependency`       | Whether an npm package is allowed here                          |
+| `use-the-library`      | The library feature that already does the job                   |
+| `ingest-data`          | Running, limiting and resetting the movie ingest                |
+| `debug-this-stack`     | Failures by symptom, each with its fix                          |
+| `verify`               | Run the gate and read what it says                              |
+| `self-review`          | Review the diff — yours and the agent's — before claiming done  |
+| `grill-me`             | Be interrogated on a plan until it holds                        |
+| `implementor-reviewer` | Loop an implementor against reviewers until the review is clean |
+| `git-commit-format`    | Commit messages in this repo's format                           |
+
+Beside them, `.claude/agents/` holds an implementor and two reviewers, and `.claude/hooks/`
+blocks infrastructure, logs permission prompts, and — if you opt in — refuses to end a turn
+until the gate is green.
