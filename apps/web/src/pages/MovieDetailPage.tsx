@@ -18,6 +18,7 @@ import { Link, useParams } from 'react-router';
 import { z } from 'zod';
 
 import { orpc, type ApiOutputs } from '../api/client';
+import { FavouriteButton } from '../components/FavouriteButton';
 import { MoviePoster } from '../components/MoviePoster';
 import { formatCount, formatRating, formatRuntime } from '../format';
 
@@ -92,7 +93,14 @@ function MovieDetail({ movie }: { movie: Movie }) {
       <Grid.Col span={{ base: 12, sm: 7, md: 8 }}>
         <Stack gap="lg">
           <Stack gap="sm">
-            <Title order={1}>{movie.title}</Title>
+            <Group gap="xs" wrap="nowrap">
+              <Title order={1}>{movie.title}</Title>
+              <FavouriteButton
+                movieId={movie.id}
+                title={movie.title}
+                isFavourite={movie.isFavourite}
+              />
+            </Group>
             <Group gap="xs">
               <Badge variant="filled" tt="capitalize">
                 {movie.type}

@@ -1,7 +1,14 @@
-import { and, asc, count, desc, eq, isNotNull, like, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, isNotNull, like, sql, type SQL } from 'drizzle-orm';
 import { z } from 'zod';
-import { movies, type Movie, type MovieSummary, type movieSortSchema } from '@app/contract';
+import {
+  favourites,
+  movies,
+  type Movie,
+  type MovieSummary,
+  type movieSortSchema,
+} from '@app/contract';
 import type { Db } from './db';
+import { findFavouritedAmong, isFavourite } from './favourites';
 
 /**
  * Data access for the `movies` table. Everything here goes through Drizzle's
@@ -19,6 +26,7 @@ export interface MovieListQuery {
   search?: string | undefined;
   genre?: string | undefined;
   sort: MovieSort;
+  favouritesOnly: boolean;
 }
 
 export interface MovieListPage {
@@ -111,8 +119,22 @@ function hasGenre(genre: string): SQL {
   return sql`exists (select 1 from json_each(${movies.genres}) where json_each.value = ${genre})`;
 }
 
+/**
+ * "Is this film one of the viewer's favourites", as a subquery rather than a
+ * join, so it composes with the other filters and cannot multiply rows.
+ */
+function isFavouriteOf(db: Db, viewer: number): SQL {
+  return inArray(
+    movies.id,
+    db
+      .select({ movieId: favourites.movieId })
+      .from(favourites)
+      .where(eq(favourites.userId, viewer)),
+  );
+}
+
 /** The filters, built once and reused by both the page query and its count. */
-function matching(query: MovieListQuery): SQL | undefined {
+function matching(db: Db, query: MovieListQuery, viewer: Viewer): SQL | undefined {
   const conditions: SQL[] = [];
 
   if (query.search !== undefined) {
@@ -123,6 +145,12 @@ function matching(query: MovieListQuery): SQL | undefined {
 
   if (query.genre !== undefined) {
     conditions.push(hasGenre(query.genre));
+  }
+
+  if (query.favouritesOnly) {
+    /* A signed-out caller has no favourites, so "only my favourites" is an
+       empty page. Not an error: the filter is answerable, the answer is none. */
+    conditions.push(viewer === undefined ? sql`1 = 0` : isFavouriteOf(db, viewer));
   }
 
   /* `and()` of nothing is `undefined`, which Drizzle reads as "no WHERE". */
@@ -145,12 +173,36 @@ function orderFor(sort: MovieSort): SQL[] {
   }
 }
 
-export function listMovies(db: Db, query: MovieListQuery): MovieListPage {
-  const where = matching(query);
+/**
+ * Marks a page of rows with whether the viewer has favourited each one.
+ *
+ * One query for the whole page, not one per card: `findFavouritedAmong` asks
+ * about all 24 ids at once and hands back a set to look them up in.
+ */
+function withIsFavourite<T extends { id: number }>(
+  db: Db,
+  rows: T[],
+  viewer: Viewer,
+): (T & { isFavourite: boolean })[] {
+  if (viewer === undefined) {
+    return rows.map((row) => ({ ...row, isFavourite: false }));
+  }
+
+  const favourited = findFavouritedAmong(
+    db,
+    viewer,
+    rows.map((row) => row.id),
+  );
+
+  return rows.map((row) => ({ ...row, isFavourite: favourited.has(row.id) }));
+}
+
+export function listMovies(db: Db, query: MovieListQuery, viewer: Viewer): MovieListPage {
+  const where = matching(db, query, viewer);
 
   /* LIMIT/OFFSET in SQL, never a full table read plus `.slice()`: the database
      is the only thing that can skip rows without materialising them. */
-  const items = db
+  const rows = db
     .select(summaryColumns)
     .from(movies)
     .where(where)
@@ -163,12 +215,23 @@ export function listMovies(db: Db, query: MovieListQuery): MovieListPage {
      one applies. SQLite counts matching rows without reading their columns. */
   const total = firstCount(db.select({ value: count() }).from(movies).where(where).all());
 
-  return { items, total };
+  return { items: withIsFavourite(db, rows, viewer), total };
 }
 
 /** `undefined` rather than a throw: "no such id" is the router's 404 to declare, not ours. */
-export function findMovie(db: Db, id: number): Movie | undefined {
-  return db.select(movieColumns).from(movies).where(eq(movies.id, id)).get();
+export function findMovie(db: Db, id: number, viewer: Viewer): Movie | undefined {
+  const row = db.select(movieColumns).from(movies).where(eq(movies.id, id)).get();
+
+  if (row === undefined) {
+    return undefined;
+  }
+
+  return { ...row, isFavourite: viewer !== undefined && isFavourite(db, viewer, id) };
+}
+
+/** Whether a film exists at all, which is what a favourite's 404 turns on. */
+export function movieExists(db: Db, id: number): boolean {
+  return db.select({ id: movies.id }).from(movies).where(eq(movies.id, id)).get() !== undefined;
 }
 
 /** `db.all` hands back `unknown`; the project rule is to parse a boundary, not assert it. */
