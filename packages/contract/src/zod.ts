@@ -26,6 +26,25 @@ export const movieSchema = createSelectSchema(movies, arrayColumns).omit({
 
 export type Movie = z.infer<typeof movieSchema>;
 
+/**
+ * What a card in the list needs, and nothing more. Picked from `movieSchema`
+ * rather than declared, so a column that changes type upstream changes here
+ * too — and so `fullplot`, `writers` and the rest are not sent 24 at a time.
+ */
+export const movieSummarySchema = movieSchema.pick({
+  id: true,
+  title: true,
+  poster: true,
+  genres: true,
+  imdbRating: true,
+  runtime: true,
+  type: true,
+  rated: true,
+  plot: true,
+});
+
+export type MovieSummary = z.infer<typeof movieSummarySchema>;
+
 /** What a row looks like on the way in. Drizzle types the insert itself. */
 export type MovieDraft = typeof movies.$inferInsert;
 
